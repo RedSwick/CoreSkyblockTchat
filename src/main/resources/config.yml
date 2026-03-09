@@ -1,0 +1,76 @@
+# ═══════════════════════════════════════════════════════════════
+#  ARCANIUM SKYBLOCK — Configuration principale
+# ═══════════════════════════════════════════════════════════════
+
+# Île
+island:
+  default-radius: 50
+  max-homes-default: 3
+  max-homes-upgrade: false   # si true, max homes = niveau upgrade MEMBER_LIMIT ou custom
+  max-coop-members: 4        # chef + 3 coops max (ou via upgrade)
+
+# Cooldowns (en secondes)
+cooldowns:
+  island-go: 5
+  island-home: 3
+  visit: 10
+
+# Banque d'île
+bank:
+  enabled: true
+  interest-enabled: true
+  interest-percent-per-day: 2.0
+  interest-interval-hours: 24
+
+# Récompenses quotidiennes
+daily:
+  enabled: true
+  reset-hour-utc: 0          # minuit UTC
+  max-streak: 30
+  rewards:                   # jour 1, 2, 3... (récompenses cumulatives ou par jour)
+    - coins: 100
+      essence: 10
+    - coins: 200
+      essence: 15
+    - coins: 300
+      essence: 20
+    - coins: 500
+      essence: 30
+    - coins: 750
+      essence: 50
+    - coins: 1000
+      essence: 75
+    - coins: 1500
+      essence: 100
+      gems: 1
+
+# Vote (récompense avec cooldown)
+vote:
+  enabled: true
+  cooldown-hours: 24
+  rewards:
+    coins: 500
+    essence: 50
+
+# Scoreboard
+scoreboard:
+  enabled: true
+  update-ticks: 40           # 2 secondes
+  title: "§6§lArcanium"
+  lines:
+    - "§7▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"
+    - "§eNiveau île §8» §b%level%"
+    - "§eCoins §8» §6%coins%"
+    - "§eEssence §8» §d%essence%"
+    - "§eGemmes §8» §3%gems%"
+    - ""
+    - "§7▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"
+
+# Schéma île de départ
+schematic:
+  enabled: true
+  # Nom du fichier dans plugins/CoreSkyblock/schematics/
+  # Formats supportés: .schem (Sponge), .litematic (Litematica)
+  file-name: "ile Skyblock.litematic"
+  # Si pas de fichier ou erreur: fallback bedrock + grass (comportement actuel)
+  paste-offset-y: 0          # décalage vertical (0 = au niveau du centre)

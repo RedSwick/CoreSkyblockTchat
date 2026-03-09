@@ -1,0 +1,74 @@
+# ═══════════════════════════════════════════════════════════════
+#  ARCANIUM SKYBLOCK — Messages (traductions / personnalisation)
+#  Placeholders: %player%, %amount%, %name%, etc.
+# ═══════════════════════════════════════════════════════════════
+
+prefix: "§6§lArcanium §8» §r"
+
+# Île — général
+island.no-island: "§cTu n'as pas d'île !"
+island.only-owner: "§cSeul le chef peut faire ça !"
+island.only-owner-name: "§cSeul le chef peut renommer l'île !"
+island.only-owner-permissions: "§cSeul le chef peut modifier les permissions !"
+island.only-owner-banlist: "§cSeul le chef peut voir la liste des bannis."
+island.only-owner-transfer: "§cSeul le chef peut transférer l'île !"
+island.only-owner-promote: "§cSeul le chef peut promouvoir !"
+island.only-owner-demote: "§cSeul le chef peut rétrograder !"
+island.already-have: "§cTu as déjà une île !"
+island.created: "§a§lÎle créée ! Bienvenue sur Arcanium ✨"
+island.name-usage: "§cUsage : §e/is name <nom> §cou §e/is name reset"
+island.name-too-long: "§cNom trop long (max 32 caractères) !"
+island.name-taken: "§cCe nom est déjà pris !"
+island.name-reset: "§7Nom de l'île réinitialisé."
+island.name-set: "§aÎle renommée : %name%"
+island.delete-confirm: "§cSuppression en cours..."
+island.delete-other: "§cL'île a été supprimée."
+island.border-on: "§aBorder activée."
+island.border-off: "§cBorder désactivée."
+island.no-permission: "§cTu n'as pas la permission !"
+island.must-be-on-island: "§cTu dois être sur ton île !"
+island.sethome-done: "§a✦ Point d'accueil de l'île défini ici !"
+island.sethome-name-done: "§a✦ Home §e%name% §adéfini !"
+island.home-usage: "§cUsage : §e/is home [nom]"
+island.home-unknown: "§cHome §e%name% §cintrouvable."
+island.homes-max: "§cLimite de homes atteinte (§e%max%§c)."
+island.guest-add: "§a§e%player% §aajouté à la liste des invités."
+island.guest-remove: "§7§e%player% §7retiré de la liste des invités."
+island.guest-list-empty: "§7Aucun invité."
+island.guest-usage: "§cUsage : §e/is guest add|remove|list [joueur]"
+island.visit-closed: "§cCette île est fermée aux visiteurs."
+island.visit-guest-ok: "§aTéléporté sur l'île de §e%owner%§a !"
+island.visit-no-warp: "§cCette île n'a pas de point de visite."
+island.visit-banned: "§cTu es banni de cette île."
+island.visit-not-found: "§cÎle introuvable pour §e%name%§c."
+island.cooldown: "§cAttends §e%seconds% §csecondes."
+island.bank-disabled: "§cLa banque d'île est désactivée."
+island.bank-no-permission: "§cTu n'as pas la permission d'utiliser la banque."
+island.bank-usage: "§cUsage : §e/is bank deposit|withdraw <montant>"
+island.bank-deposit-done: "§a§e%amount% §6⬡ §adéposés dans la banque."
+island.bank-withdraw-done: "§a§e%amount% §6⬡ §aretirés de la banque."
+island.bank-not-enough: "§cMontant insuffisant."
+island.bank-balance: "§7Banque île : §e%amount% §6⬡"
+
+# Daily / Vote
+daily.claimed: "§aRécompense du jour §e%day% §aclaim ! §b+%coins% ⬡ §d+%essence% essence"
+daily.streak: "§7Série : §e%streak% §7jours"
+daily.already: "§cTu as déjà récupéré ta récompense aujourd'hui."
+daily.gui-title: "§8✦ §e§lRécompense quotidienne"
+vote.claimed: "§aMerci d'avoir voté ! §e+%coins% ⬡ §d+%essence% essence"
+vote.cooldown: "§cTu pourras revoter dans §e%hours%h%minutes%m§c."
+vote.gui-title: "§8✦ §d§lVote"
+
+# Crates
+crate.open: "§aOuverture... §e%crate%"
+crate.reward: "§aTu as reçu : §e%item%"
+crate.no-key: "§cTu n'as pas de clé pour ce type de crate."
+crate.give-usage: "§cUsage : §e/crate give <joueur> <type> [quantité]"
+
+# Scoreboard (optionnel, si lignes vides)
+scoreboard.disabled: ""
+
+# Général
+general.unknown-command: "§cCommande inconnue. §e/is §cpour l'aide."
+general.player-not-found: "§cJoueur introuvable."
+general.number-invalid: "§cNombre invalide."
