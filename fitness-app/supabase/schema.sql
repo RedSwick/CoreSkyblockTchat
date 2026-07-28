@@ -287,3 +287,34 @@ insert into exercises (name, muscle_group, equipment) values
   ('Vélo elliptique / rameur', 'Cardio', 'gym'),
   ('Marche rapide / course', 'Cardio', 'both')
 on conflict do nothing;
+
+-- ---------------------------------------------------------------------------
+-- Messages entre partenaires (encouragements, rappels, notes libres)
+-- ---------------------------------------------------------------------------
+create table if not exists messages (
+  id uuid primary key default gen_random_uuid(),
+  couple_id uuid not null references couples(id) on delete cascade,
+  from_profile_id uuid not null references profiles(id) on delete cascade,
+  to_profile_id uuid not null references profiles(id) on delete cascade,
+  kind text not null default 'custom' check (kind in ('custom', 'pr_cheer', 'hydration_nudge')),
+  body text not null,
+  related_exercise_id uuid references exercises(id),
+  is_read boolean not null default false,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists messages_to_profile_idx on messages (to_profile_id, created_at desc);
+create index if not exists messages_couple_idx on messages (couple_id, created_at desc);
+
+alter table messages enable row level security;
+
+create policy "messages_select" on messages for select using (
+  from_profile_id = auth.uid() or to_profile_id = auth.uid()
+);
+create policy "messages_insert" on messages for insert with check (
+  from_profile_id = auth.uid() and is_own_or_partner(to_profile_id)
+);
+create policy "messages_update" on messages for update using (to_profile_id = auth.uid());
+
+-- Active le temps réel pour que la cloche se mette à jour sans recharger la page
+alter publication supabase_realtime add table messages;

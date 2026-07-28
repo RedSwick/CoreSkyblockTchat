@@ -4,14 +4,20 @@ import { useAuth } from '../contexts/AuthContext'
 import {
   addSet,
   finishSession,
+  getAllBestPerformances,
   getLastSetsForExercise,
+  getPartnerProfile,
   getProgramExercises,
   getSession,
   getSessionSets,
   markSetAsPr,
+  sendMessage,
+  type BestPerformance,
 } from '../lib/api'
+import { computeExerciseRank, hasRankConfig } from '../lib/ranks'
+import { RankBadge } from '../components/RankBadge'
 import { Button, Card, PageTitle, Spinner } from '../components/ui'
-import type { Exercise, ProgramExercise, SessionSet, WorkoutSession } from '../types'
+import type { Exercise, Profile, ProgramExercise, SessionSet, WorkoutSession } from '../types'
 
 type ExerciseWithTarget = ProgramExercise & { exercise: Exercise }
 
@@ -25,16 +31,25 @@ export function SessionLogger() {
   const [exercises, setExercises] = useState<ExerciseWithTarget[]>([])
   const [loggedSets, setLoggedSets] = useState<Record<string, SessionSet[]>>({})
   const [suggestions, setSuggestions] = useState<Record<string, SessionSet | undefined>>({})
+  const [bests, setBests] = useState<Record<string, BestPerformance>>({})
+  const [partner, setPartner] = useState<Profile | null>(null)
   const [drafts, setDrafts] = useState<Record<string, { weight: string; reps: string }>>({})
+  const [celebrating, setCelebrating] = useState<string | null>(null)
   const [finishing, setFinishing] = useState(false)
 
   useEffect(() => {
     if (!sessionId || !profile) return
     let cancelled = false
     async function load() {
-      const s = await getSession(sessionId!)
+      const [s, allBests, partnerProfile] = await Promise.all([
+        getSession(sessionId!),
+        getAllBestPerformances(profile!.id),
+        getPartnerProfile(profile!),
+      ])
       if (cancelled) return
       setSession(s)
+      setBests(allBests)
+      setPartner(partnerProfile)
 
       let exList: ExerciseWithTarget[] = []
       if (s.program_day_id) {
@@ -79,18 +94,42 @@ export function SessionLogger() {
     })
   }
 
-  async function handleAddSet(exerciseId: string) {
-    if (!sessionId) return
+  async function handleAddSet(pe: ExerciseWithTarget) {
+    if (!sessionId || !profile) return
+    const exerciseId = pe.exercise_id
     const draft = drafts[exerciseId] ?? { weight: '', reps: '' }
     const setNumber = (loggedSets[exerciseId]?.length ?? 0) + 1
     const weight = draft.weight ? Number(draft.weight) : null
     const reps = draft.reps ? Number(draft.reps) : null
     const created = await addSet({ sessionId, exerciseId, setNumber, weightKg: weight, reps, rpe: null })
 
-    const best = suggestions[exerciseId]
-    if (weight && (!best || weight > (best.weight_kg ?? 0))) {
+    const oldBest = bests[exerciseId]?.maxWeight ?? null
+    const isRecord = weight !== null && (oldBest === null || weight > oldBest)
+
+    if (isRecord) {
       await markSetAsPr(created.id)
       created.is_pr = true
+      setBests((prev) => ({ ...prev, [exerciseId]: { maxWeight: weight, maxReps: prev[exerciseId]?.maxReps ?? null } }))
+
+      if (hasRankConfig(pe.exercise.name)) {
+        const oldRank = computeExerciseRank(pe.exercise.name, profile.sex, oldBest)
+        const newRank = computeExerciseRank(pe.exercise.name, profile.sex, weight)
+        if (newRank && oldRank && newRank.tierIndex > oldRank.tierIndex) {
+          setCelebrating(exerciseId)
+          setTimeout(() => setCelebrating(null), 2800)
+        }
+      }
+
+      if (partner && profile.couple_id) {
+        sendMessage({
+          coupleId: profile.couple_id,
+          fromProfileId: profile.id,
+          toProfileId: partner.id,
+          kind: 'pr_cheer',
+          body: `🏆 ${profile.display_name} vient de faire un nouveau record à ${pe.exercise.name} : ${weight}kg !`,
+          relatedExerciseId: exerciseId,
+        })
+      }
     }
 
     setLoggedSets((prev) => ({ ...prev, [exerciseId]: [...(prev[exerciseId] ?? []), created] }))
@@ -108,7 +147,7 @@ export function SessionLogger() {
     }
   }
 
-  if (loading || !session) return <Spinner />
+  if (loading || !session || !profile) return <Spinner />
 
   return (
     <div className="flex-1 px-4 py-6 overflow-y-auto space-y-4 pb-24">
@@ -124,14 +163,28 @@ export function SessionLogger() {
         const sets = loggedSets[pe.exercise_id] ?? []
         const suggestion = suggestions[pe.exercise_id]
         const draft = drafts[pe.exercise_id] ?? { weight: '', reps: '' }
+        const rank = hasRankConfig(pe.exercise.name)
+          ? computeExerciseRank(pe.exercise.name, profile.sex, bests[pe.exercise_id]?.maxWeight ?? bests[pe.exercise_id]?.maxReps ?? null)
+          : null
         return (
-          <Card key={pe.id}>
-            <div className="flex items-center justify-between mb-1">
-              <h3 className="font-medium text-slate-100">{pe.exercise.name}</h3>
-              <span className="text-xs text-slate-500">
-                {pe.target_sets} x {pe.target_reps_min}-{pe.target_reps_max}
-              </span>
+          <Card key={pe.id} className={celebrating === pe.exercise_id ? 'glow-pulse' : ''}>
+            <div className="flex items-center justify-between mb-1 gap-2">
+              <button
+                onClick={() => navigate(`/exercise/${pe.exercise_id}`)}
+                className="font-medium text-slate-100 text-left underline decoration-slate-700 underline-offset-2"
+              >
+                {pe.exercise.name}
+              </button>
+              <div className="flex items-center gap-2 shrink-0">
+                <RankBadge rank={rank} size="sm" />
+                <span className="text-xs text-slate-500">
+                  {pe.target_sets}x{pe.target_reps_min}-{pe.target_reps_max}
+                </span>
+              </div>
             </div>
+            {celebrating === pe.exercise_id && (
+              <p className="text-xs text-amber-300 mb-2">🎉 Rang supérieur débloqué !</p>
+            )}
             {suggestion && (
               <p className="text-xs text-slate-500 mb-2">
                 Dernière fois : {suggestion.weight_kg ?? '?'}kg x {suggestion.reps ?? '?'}
@@ -168,7 +221,7 @@ export function SessionLogger() {
                 onChange={(e) => updateDraft(pe.exercise_id, { reps: e.target.value })}
                 className="w-20 rounded-lg bg-slate-800/80 border border-slate-700 px-2 py-2 text-sm text-slate-100 outline-none focus:border-sky-500"
               />
-              <Button variant="secondary" className="flex-1 py-2 text-sm" onClick={() => handleAddSet(pe.exercise_id)}>
+              <Button variant="secondary" className="flex-1 py-2 text-sm" onClick={() => handleAddSet(pe)}>
                 + Série {sets.length + 1}
               </Button>
             </div>

@@ -107,3 +107,17 @@ export interface NutritionTarget {
   carbs_g: number
   fat_g: number
 }
+
+export type MessageKind = 'custom' | 'pr_cheer' | 'hydration_nudge'
+
+export interface Message {
+  id: string
+  couple_id: string
+  from_profile_id: string
+  to_profile_id: string
+  kind: MessageKind
+  body: string
+  related_exercise_id: string | null
+  is_read: boolean
+  created_at: string
+}

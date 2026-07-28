@@ -4,6 +4,7 @@ const items = [
   { to: '/', label: 'Accueil', icon: '🏠' },
   { to: '/workouts', label: 'Séance', icon: '🏋️' },
   { to: '/hydration', label: 'Eau', icon: '💧' },
+  { to: '/ranks', label: 'Rangs', icon: '🏅' },
   { to: '/progress', label: 'Progrès', icon: '📈' },
   { to: '/couple', label: 'Couple', icon: '❤️' },
 ]

@@ -2,6 +2,8 @@ import { supabase } from './supabase'
 import type {
   Exercise,
   HydrationLog,
+  Message,
+  MessageKind,
   Profile,
   Program,
   ProgramDay,
@@ -134,6 +136,12 @@ export async function listHydrationLogs(profileId: string, days = 14): Promise<H
 // ---------------------------------------------------------------------------
 // Exercices & programmes
 // ---------------------------------------------------------------------------
+export async function getExercise(exerciseId: string): Promise<Exercise> {
+  const { data, error } = await supabase.from('exercises').select('*').eq('id', exerciseId).single()
+  if (error) throw error
+  return data as Exercise
+}
+
 export async function listExercises(): Promise<Exercise[]> {
   const { data, error } = await supabase.from('exercises').select('*').order('muscle_group')
   if (error) throw error
@@ -346,4 +354,154 @@ export async function getWeeklySessionCount(profileId: string): Promise<number> 
     .gte('session_date', since.toISOString().slice(0, 10))
   if (error) throw error
   return count ?? 0
+}
+
+export async function getRecentPrs(
+  profileId: string,
+  limit = 5,
+): Promise<(SessionSet & { exercise: Exercise; session_date: string })[]> {
+  const { data, error } = await supabase
+    .from('session_sets')
+    .select('*, exercise:exercises(*), workout_sessions!inner(session_date, profile_id)')
+    .eq('is_pr', true)
+    .eq('workout_sessions.profile_id', profileId)
+    .order('created_at', { ascending: false })
+    .limit(limit)
+  if (error) throw error
+  return (
+    data as unknown as (SessionSet & { exercise: Exercise; workout_sessions: { session_date: string } })[]
+  ).map((r) => ({ ...r, session_date: r.workout_sessions.session_date }))
+}
+
+// ---------------------------------------------------------------------------
+// Rangs : meilleures perfs par exercice
+// ---------------------------------------------------------------------------
+export interface BestPerformance {
+  maxWeight: number | null
+  maxReps: number | null
+}
+
+export async function getBestPerformance(profileId: string, exerciseId: string): Promise<BestPerformance> {
+  const { data, error } = await supabase
+    .from('session_sets')
+    .select('weight_kg, reps, workout_sessions!inner(profile_id)')
+    .eq('exercise_id', exerciseId)
+    .eq('workout_sessions.profile_id', profileId)
+  if (error) throw error
+  const rows = data as unknown as { weight_kg: number | null; reps: number | null }[]
+  return rows.reduce<BestPerformance>(
+    (acc, r) => ({
+      maxWeight: r.weight_kg != null && (acc.maxWeight === null || r.weight_kg > acc.maxWeight) ? r.weight_kg : acc.maxWeight,
+      maxReps: r.reps != null && (acc.maxReps === null || r.reps > acc.maxReps) ? r.reps : acc.maxReps,
+    }),
+    { maxWeight: null, maxReps: null },
+  )
+}
+
+export async function getAllBestPerformances(profileId: string): Promise<Record<string, BestPerformance>> {
+  const { data, error } = await supabase
+    .from('session_sets')
+    .select('exercise_id, weight_kg, reps, workout_sessions!inner(profile_id)')
+    .eq('workout_sessions.profile_id', profileId)
+  if (error) throw error
+  const rows = data as unknown as { exercise_id: string; weight_kg: number | null; reps: number | null }[]
+  const result: Record<string, BestPerformance> = {}
+  for (const row of rows) {
+    const cur = result[row.exercise_id] ?? { maxWeight: null, maxReps: null }
+    if (row.weight_kg != null && (cur.maxWeight === null || row.weight_kg > cur.maxWeight)) cur.maxWeight = row.weight_kg
+    if (row.reps != null && (cur.maxReps === null || row.reps > cur.maxReps)) cur.maxReps = row.reps
+    result[row.exercise_id] = cur
+  }
+  return result
+}
+
+export async function logQuickPr(params: {
+  profileId: string
+  exercise: Exercise
+  weightKg: number | null
+  reps: number | null
+}): Promise<SessionSet> {
+  const location = params.exercise.equipment === 'home' ? 'home' : 'gym'
+  const session = await startSession(params.profileId, null, location)
+  const created = await addSet({
+    sessionId: session.id,
+    exerciseId: params.exercise.id,
+    setNumber: 1,
+    weightKg: params.weightKg,
+    reps: params.reps,
+    rpe: null,
+  })
+  await finishSession(session.id)
+  return created
+}
+
+// ---------------------------------------------------------------------------
+// Messages entre partenaires
+// ---------------------------------------------------------------------------
+export async function sendMessage(params: {
+  coupleId: string
+  fromProfileId: string
+  toProfileId: string
+  kind: MessageKind
+  body: string
+  relatedExerciseId?: string
+}): Promise<Message> {
+  const { data, error } = await supabase
+    .from('messages')
+    .insert({
+      couple_id: params.coupleId,
+      from_profile_id: params.fromProfileId,
+      to_profile_id: params.toProfileId,
+      kind: params.kind,
+      body: params.body,
+      related_exercise_id: params.relatedExerciseId ?? null,
+    })
+    .select('*')
+    .single()
+  if (error) throw error
+  return data as Message
+}
+
+export async function listMessages(coupleId: string, limit = 50): Promise<Message[]> {
+  const { data, error } = await supabase
+    .from('messages')
+    .select('*')
+    .eq('couple_id', coupleId)
+    .order('created_at', { ascending: false })
+    .limit(limit)
+  if (error) throw error
+  return data as Message[]
+}
+
+export async function getUnreadCount(profileId: string): Promise<number> {
+  const { count, error } = await supabase
+    .from('messages')
+    .select('id', { count: 'exact', head: true })
+    .eq('to_profile_id', profileId)
+    .eq('is_read', false)
+  if (error) throw error
+  return count ?? 0
+}
+
+export async function markAllMessagesRead(profileId: string): Promise<void> {
+  const { error } = await supabase
+    .from('messages')
+    .update({ is_read: true })
+    .eq('to_profile_id', profileId)
+    .eq('is_read', false)
+  if (error) throw error
+}
+
+export function subscribeToIncomingMessages(profileId: string, onMessage: (msg: Message) => void): () => void {
+  const channel = supabase
+    .channel(`messages-${profileId}`)
+    .on(
+      'postgres_changes',
+      { event: 'INSERT', schema: 'public', table: 'messages', filter: `to_profile_id=eq.${profileId}` },
+      (payload) => onMessage(payload.new as Message),
+    )
+    .subscribe()
+  return () => {
+    supabase.removeChannel(channel)
+  }
 }
