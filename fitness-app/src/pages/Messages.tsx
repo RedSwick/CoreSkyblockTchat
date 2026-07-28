@@ -115,7 +115,9 @@ export function Messages() {
               <div key={m.id} className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
                 <div
                   className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm ${
-                    mine ? 'bg-sky-500 text-slate-950' : 'bg-slate-800 text-slate-100'
+                    mine
+                      ? 'bg-gradient-to-br from-sky-400 to-indigo-500 text-slate-950 shadow-md shadow-sky-500/20'
+                      : 'bg-slate-800/90 text-slate-100 border border-slate-700/50'
                   }`}
                 >
                   <p>{m.body}</p>

@@ -215,7 +215,7 @@ export function Dashboard() {
         </Card>
       )}
 
-      <Card className="flex items-center gap-4">
+      <Card glow className="flex items-center gap-4">
         <ProgressRing value={hydrationMl} max={hydrationTarget} label="hydratation" />
         <div className="flex-1">
           <p className="text-sm text-slate-300">
@@ -233,13 +233,13 @@ export function Dashboard() {
           <div className="flex rounded-lg bg-slate-800 p-0.5 text-xs">
             <button
               onClick={() => setLocationChoice('home')}
-              className={`px-2.5 py-1 rounded-md ${locationChoice === 'home' ? 'bg-sky-500 text-slate-950 font-medium' : 'text-slate-400'}`}
+              className={`px-2.5 py-1 rounded-md transition ${locationChoice === 'home' ? 'bg-gradient-to-r from-sky-400 to-indigo-500 text-slate-950 font-medium shadow-sm' : 'text-slate-400'}`}
             >
               🏠 Maison
             </button>
             <button
               onClick={() => setLocationChoice('gym')}
-              className={`px-2.5 py-1 rounded-md ${locationChoice === 'gym' ? 'bg-sky-500 text-slate-950 font-medium' : 'text-slate-400'}`}
+              className={`px-2.5 py-1 rounded-md transition ${locationChoice === 'gym' ? 'bg-gradient-to-r from-sky-400 to-indigo-500 text-slate-950 font-medium shadow-sm' : 'text-slate-400'}`}
             >
               🏋️ Salle
             </button>

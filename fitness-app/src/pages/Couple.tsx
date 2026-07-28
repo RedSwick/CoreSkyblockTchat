@@ -201,7 +201,7 @@ export function Couple() {
           </span>
         </div>
         <div className="h-2 rounded-full bg-slate-800 overflow-hidden mb-2">
-          <div className="h-full bg-sky-500" style={{ width: `${Math.min(100, (partnerHydration / hydrationTarget) * 100)}%` }} />
+          <div className="h-full bg-gradient-to-r from-sky-400 to-indigo-500" style={{ width: `${Math.min(100, (partnerHydration / hydrationTarget) * 100)}%` }} />
         </div>
         {isBehindOnWater && (
           <Button variant="secondary" className="w-full text-sm" onClick={handleSendNudge} disabled={nudgeSent}>

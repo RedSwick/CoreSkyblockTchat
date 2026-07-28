@@ -11,21 +11,28 @@ const items = [
 
 export function BottomNav() {
   return (
-    <nav className="sticky bottom-0 left-0 right-0 border-t border-slate-800 bg-slate-950/95 backdrop-blur pb-[env(safe-area-inset-bottom)]">
-      <div className="flex">
+    <nav className="sticky bottom-0 left-0 right-0 border-t border-slate-800/80 bg-slate-950/90 backdrop-blur-md pb-[env(safe-area-inset-bottom)]">
+      <div className="flex px-1 py-1.5">
         {items.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
             end={item.to === '/'}
             className={({ isActive }) =>
-              `flex-1 flex flex-col items-center gap-0.5 py-2.5 text-[11px] ${
-                isActive ? 'text-sky-400' : 'text-slate-500'
+              `relative flex-1 flex flex-col items-center gap-0.5 py-1.5 text-[11px] transition-colors ${
+                isActive ? 'text-sky-300' : 'text-slate-500'
               }`
             }
           >
-            <span className="text-lg leading-none">{item.icon}</span>
-            {item.label}
+            {({ isActive }) => (
+              <>
+                {isActive && (
+                  <span className="absolute inset-x-1.5 -top-1.5 bottom-0 rounded-xl bg-gradient-to-b from-sky-500/15 to-indigo-500/5 border border-sky-500/20" />
+                )}
+                <span className="relative text-lg leading-none">{item.icon}</span>
+                <span className="relative">{item.label}</span>
+              </>
+            )}
           </NavLink>
         ))}
       </div>

@@ -167,7 +167,7 @@ export function ExerciseDetail() {
           {rank.nextThreshold !== null ? (
             <>
               <div className="h-2 rounded-full bg-slate-800 overflow-hidden">
-                <div className="h-full bg-sky-500" style={{ width: `${rank.progressPct}%` }} />
+                <div className="h-full bg-gradient-to-r from-sky-400 to-indigo-500" style={{ width: `${rank.progressPct}%` }} />
               </div>
               <p className="text-xs text-slate-500 mt-1.5">
                 {Math.max(0, rank.nextThreshold - (rank.value ?? 0))}

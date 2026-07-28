@@ -47,20 +47,28 @@ function Header() {
     }
   }, [location.pathname, profile])
 
+  const initial = profile?.display_name?.charAt(0).toUpperCase() ?? '?'
+
   return (
-    <header className="flex items-center justify-between px-4 py-3 border-b border-slate-800">
-      <span className="font-semibold text-slate-100">Duo Fit</span>
+    <header className="relative flex items-center justify-between px-4 py-3 border-b border-slate-800/70 bg-slate-950/40 backdrop-blur">
+      <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-sky-500/40 to-transparent" />
+      <Link to="/" className="flex items-center gap-2">
+        <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-sky-400 to-indigo-500 text-sm shadow-md shadow-sky-500/30">
+          💪
+        </span>
+        <span className="font-bold tracking-tight gradient-text">Duo Fit</span>
+      </Link>
       <div className="flex items-center gap-3">
-        <Link to="/messages" className="relative text-slate-400 text-lg leading-none">
+        <Link to="/messages" className="relative text-slate-300 text-lg leading-none">
           💬
           {unread > 0 && (
-            <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold text-white">
+            <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold text-white shadow shadow-red-500/40">
               {unread > 9 ? '9+' : unread}
             </span>
           )}
         </Link>
-        <Link to="/settings" className="text-slate-400 text-lg leading-none">
-          ⚙️
+        <Link to="/settings" className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-slate-700 to-slate-800 border border-slate-600/60 text-xs font-semibold text-slate-200">
+          {initial}
         </Link>
       </div>
     </header>

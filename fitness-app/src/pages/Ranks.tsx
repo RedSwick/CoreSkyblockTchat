@@ -82,7 +82,7 @@ export function Ranks() {
       <PageTitle title="Rangs" subtitle="Ton niveau par exercice et par groupe musculaire" />
 
       {groupRanks.length > 0 && (
-        <Card className="flex items-center gap-4">
+        <Card glow className="flex items-center gap-4">
           <div
             className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl text-3xl"
             style={{ backgroundColor: `${TIER_COLORS[overallTierName]}22` }}

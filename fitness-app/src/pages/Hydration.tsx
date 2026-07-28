@@ -51,7 +51,7 @@ export function Hydration() {
     <div className="flex-1 px-4 py-6 overflow-y-auto space-y-5">
       <PageTitle title="Hydratation" subtitle="Objectif quotidien adapté à ton poids" />
 
-      <Card className="flex flex-col items-center py-6">
+      <Card glow className="flex flex-col items-center py-6">
         <ProgressRing value={total} max={target} size={160} label="aujourd'hui" />
         <p className="text-sm text-slate-400 mt-3">
           {(total / 1000).toFixed(2)} L / {(target / 1000).toFixed(2)} L
@@ -84,7 +84,7 @@ export function Hydration() {
                 </span>
                 <div className="flex-1 h-2 rounded-full bg-slate-800 overflow-hidden">
                   <div
-                    className="h-full bg-sky-500"
+                    className="h-full bg-gradient-to-r from-sky-400 to-indigo-500"
                     style={{ width: `${Math.min(100, (amount / target) * 100)}%` }}
                   />
                 </div>
