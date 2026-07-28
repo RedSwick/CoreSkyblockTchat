@@ -169,6 +169,30 @@ export async function getProgramDays(programId: string): Promise<ProgramDay[]> {
   return data as ProgramDay[]
 }
 
+/** Détermine le prochain jour à faire dans un programme, en fonction de la dernière séance réalisée sur ce programme. */
+export async function getNextProgramDay(profileId: string, program: Program): Promise<ProgramDay | null> {
+  const days = await getProgramDays(program.id)
+  if (days.length === 0) return null
+
+  const dayIds = days.map((d) => d.id)
+  const { data, error } = await supabase
+    .from('workout_sessions')
+    .select('program_day_id, session_date, started_at')
+    .eq('profile_id', profileId)
+    .in('program_day_id', dayIds)
+    .order('session_date', { ascending: false })
+    .order('started_at', { ascending: false })
+    .limit(1)
+  if (error) throw error
+
+  const last = (data as { program_day_id: string | null }[])[0]
+  if (!last?.program_day_id) return days[0]
+
+  const idx = days.findIndex((d) => d.id === last.program_day_id)
+  if (idx === -1) return days[0]
+  return days[(idx + 1) % days.length]
+}
+
 export async function getProgramExercises(programDayId: string): Promise<(ProgramExercise & { exercise: Exercise })[]> {
   const { data, error } = await supabase
     .from('program_exercises')

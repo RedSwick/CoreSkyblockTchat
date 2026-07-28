@@ -31,7 +31,7 @@ export interface ProgramTemplate {
  */
 export const HOMME_GYM: ProgramTemplate = {
   key: 'homme_gym_ppl',
-  name: 'Push / Pull / Legs (Basic Fit)',
+  name: 'Push / Pull / Legs — Force/Masse (Basic Fit)',
   location: 'gym',
   audience: 'lui',
   description:
@@ -155,10 +155,86 @@ export const FEMME_GYM: ProgramTemplate = {
   ],
 }
 
-export const ALL_TEMPLATES = [HOMME_GYM, HOMME_HOME, FEMME_GYM]
+export const FEMME_PPL: ProgramTemplate = {
+  key: 'femme_gym_ppl',
+  name: 'Push / Pull / Legs — Tonification (Basic Fit)',
+  location: 'gym',
+  audience: 'elle',
+  description:
+    'Version salle en 3 jours (à répéter 2 à 4x/semaine selon tes dispos) : reps hautes pour tonifier, emphase fessiers sur la partie jambes.',
+  days: [
+    {
+      label: 'Push (pecs/épaules/triceps)',
+      exercises: [
+        { name: 'Développé couché haltères', sets: 3, repsMin: 10, repsMax: 15, restSec: 75 },
+        { name: 'Développé militaire haltères', sets: 3, repsMin: 10, repsMax: 15, restSec: 75 },
+        { name: 'Écarté poulie / haltères', sets: 3, repsMin: 12, repsMax: 15, restSec: 60 },
+        { name: 'Élévations latérales', sets: 3, repsMin: 12, repsMax: 15, restSec: 45 },
+        { name: 'Extension triceps poulie', sets: 3, repsMin: 12, repsMax: 15, restSec: 45 },
+      ],
+    },
+    {
+      label: 'Pull (dos/biceps)',
+      exercises: [
+        { name: 'Tirage vertical poulie', sets: 3, repsMin: 10, repsMax: 15, restSec: 75 },
+        { name: 'Rowing haltère unilatéral', sets: 3, repsMin: 10, repsMax: 15, restSec: 75 },
+        { name: 'Tirage horizontal poulie', sets: 3, repsMin: 12, repsMax: 15, restSec: 60 },
+        { name: 'Oiseau / élévations arrière', sets: 3, repsMin: 12, repsMax: 15, restSec: 45 },
+        { name: 'Curl biceps haltères', sets: 2, repsMin: 12, repsMax: 15, restSec: 45 },
+      ],
+    },
+    {
+      label: 'Legs (jambes/fessiers)',
+      exercises: [
+        { name: 'Squat gobelet haltère', sets: 3, repsMin: 12, repsMax: 15, restSec: 75 },
+        { name: 'Hip thrust', sets: 4, repsMin: 12, repsMax: 15, restSec: 75 },
+        { name: 'Fentes marchées', sets: 3, repsMin: 12, repsMax: 15, restSec: 60 },
+        { name: 'Leg curl allongé', sets: 3, repsMin: 12, repsMax: 15, restSec: 60 },
+        { name: 'Extension mollets debout', sets: 3, repsMin: 15, repsMax: 20, restSec: 45 },
+        { name: 'Vélo elliptique / rameur', sets: 1, repsMin: 10, repsMax: 15, restSec: 0 },
+      ],
+    },
+  ],
+}
+
+export const FEMME_HOME: ProgramTemplate = {
+  key: 'femme_home_fullbody',
+  name: 'Full Body A/B (maison)',
+  location: 'home',
+  audience: 'elle',
+  description: "À faire quand la salle n'est pas possible : poids du corps + haltères/élastique. Alterne A et B.",
+  days: [
+    {
+      label: 'Full Body A',
+      exercises: [
+        { name: 'Squat au poids du corps', sets: 4, repsMin: 15, repsMax: 20, restSec: 75 },
+        { name: 'Hip thrust', sets: 4, repsMin: 12, repsMax: 15, restSec: 75 },
+        { name: 'Pompes', sets: 3, repsMin: 8, repsMax: 15, restSec: 60 },
+        { name: 'Rowing élastique', sets: 3, repsMin: 12, repsMax: 15, restSec: 60 },
+        { name: 'Élévations latérales', sets: 3, repsMin: 12, repsMax: 15, restSec: 45 },
+        { name: 'Gainage planche', sets: 3, repsMin: 30, repsMax: 45, restSec: 45 },
+        { name: 'Corde à sauter', sets: 1, repsMin: 8, repsMax: 12, restSec: 0 },
+      ],
+    },
+    {
+      label: 'Full Body B',
+      exercises: [
+        { name: 'Fentes marchées', sets: 3, repsMin: 12, repsMax: 15, restSec: 60 },
+        { name: 'Squat gobelet haltère', sets: 3, repsMin: 12, repsMax: 15, restSec: 75 },
+        { name: 'Dips triceps (banc)', sets: 3, repsMin: 10, repsMax: 15, restSec: 60 },
+        { name: 'Curl marteau', sets: 2, repsMin: 12, repsMax: 15, restSec: 45 },
+        { name: 'Oiseau / élévations arrière', sets: 3, repsMin: 12, repsMax: 15, restSec: 45 },
+        { name: 'Crunch', sets: 3, repsMin: 15, repsMax: 25, restSec: 45 },
+        { name: 'Corde à sauter', sets: 1, repsMin: 8, repsMax: 12, restSec: 0 },
+      ],
+    },
+  ],
+}
+
+export const ALL_TEMPLATES = [HOMME_GYM, HOMME_HOME, FEMME_GYM, FEMME_PPL, FEMME_HOME]
 
 export function templatesForGoal(goal: 'gain_muscle' | 'lose_fat_tone' | 'maintain'): ProgramTemplate[] {
   if (goal === 'gain_muscle') return [HOMME_GYM, HOMME_HOME]
-  if (goal === 'lose_fat_tone') return [FEMME_GYM]
-  return [HOMME_GYM, HOMME_HOME, FEMME_GYM]
+  if (goal === 'lose_fat_tone') return [FEMME_GYM, FEMME_PPL, FEMME_HOME]
+  return ALL_TEMPLATES
 }

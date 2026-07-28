@@ -46,13 +46,18 @@ Le plus simple : [Vercel](https://vercel.com) ou [Netlify](https://netlify.com),
 1. Chacun crée son compte (e-mail + mot de passe).
 2. À l'inscription : renseigne taille, poids, objectif (prise de muscle / perte de gras & tonification), niveau d'activité.
 3. **Lier vos comptes** : l'un de vous clique "Générer un code" et l'envoie à l'autre, qui le colle dans "Rejoindre". Vous verrez alors la constance à la salle et l'évolution de poids l'un de l'autre dans l'onglet **Couple** — chacun garde le contrôle de ses propres séances/poids, en lecture seule pour l'autre.
-4. Dans l'onglet **Entraînement**, ajoute le(s) programme(s) suggéré(s) selon ton objectif (maison et/ou salle Basic Fit) — tu peux ajouter les deux si tu veux alterner.
+4. Dans l'onglet **Entraînement**, ajoute le(s) programme(s) qui t'intéressent selon ton objectif : Push/Pull/Legs et/ou Full Body, en maison et/ou en salle Basic Fit — tu peux ajouter plusieurs programmes de localisations différentes pour pouvoir alterner selon tes journées.
 
 ## Ce que l'app calcule pour toi
 
 - **Calories/macros du jour** (`src/lib/nutrition.ts`) : formule Mifflin-St Jeor + facteur d'activité, puis surplus modéré (+12%, protéines hautes) pour la prise de masse la plus sèche possible, ou déficit modéré (-15%) pour la perte de gras en préservant le muscle. Recalculé automatiquement à chaque nouvelle pesée.
 - **Objectif d'hydratation** (`computeHydrationTargetMl`) : ~35ml/kg de poids de corps, +500ml les jours d'entraînement.
 - **Suggestion de charge** : au moment de logger une série, l'app affiche ta meilleure perf précédente sur cet exercice pour viser la surcharge progressive, et marque automatiquement un 🏆 PR si tu la dépasses.
+- **Repas suggérés du jour** (`src/lib/meals.ts`) : petit-déj/déjeuner/dîner/collation choisis parmi ~24 recettes économiques (courses type Lidl/Aldi) pour coller approximativement aux calories/macros du jour, en priorisant les moins chères. Bouton "🔄 changer" pour piocher une autre suggestion proche des mêmes macros.
+
+## Coach du jour
+
+Sur le Dashboard, un sélecteur **🏠 Maison / 🏋️ Salle** te laisse dire où tu es aujourd'hui. L'app regarde ton programme actif pour cette localisation, retrouve la dernière séance que tu y as faite, et te propose automatiquement le jour suivant dans la rotation (ex. tu as fait Push lundi en salle → elle propose Pull mercredi) avec un bouton pour démarrer directement. Chaque localisation garde sa propre rotation : si tu alternes salle et maison de façon imprévisible, chacune progresse indépendamment sur son propre programme.
 
 ## Rangs par exercice
 

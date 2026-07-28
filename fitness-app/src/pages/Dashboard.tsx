@@ -1,15 +1,20 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import {
   getLatestWeight,
+  getNextProgramDay,
   getPartnerProfile,
+  getProgramExercises,
   getTodayHydrationTotal,
   getWeeklySessionCount,
+  listPrograms,
+  startSession,
 } from '../lib/api'
 import { computeHydrationTargetMl, computeNutritionTargets, getAge } from '../lib/nutrition'
-import { Card, PageTitle, ProgressRing, Spinner, StatPill } from '../components/ui'
-import type { Profile } from '../types'
+import { suggestDailyMeals } from '../lib/meals'
+import { Button, Card, EmptyState, PageTitle, ProgressRing, Spinner, StatPill } from '../components/ui'
+import type { Location, Profile, Program, ProgramDay, ProgramExercise, Exercise } from '../types'
 
 const GOAL_LABEL: Record<string, string> = {
   gain_muscle: 'Prise de muscle sèche',
@@ -17,8 +22,11 @@ const GOAL_LABEL: Record<string, string> = {
   maintain: 'Maintien',
 }
 
+const COST_LABEL = ['€', '€€', '€€€']
+
 export function Dashboard() {
   const { profile } = useAuth()
+  const navigate = useNavigate()
   const [loading, setLoading] = useState(true)
   const [weightKg, setWeightKg] = useState<number | null>(null)
   const [hydrationMl, setHydrationMl] = useState(0)
@@ -26,21 +34,37 @@ export function Dashboard() {
   const [partner, setPartner] = useState<Profile | null>(null)
   const [partnerWeeklyCount, setPartnerWeeklyCount] = useState(0)
 
+  const [locationChoice, setLocationChoice] = useState<Location>('gym')
+  const [programsByLocation, setProgramsByLocation] = useState<Record<Location, Program[]>>({ gym: [], home: [] })
+  const [coachLoading, setCoachLoading] = useState(true)
+  const [nextDay, setNextDay] = useState<ProgramDay | null>(null)
+  const [nextDayExercises, setNextDayExercises] = useState<(ProgramExercise & { exercise: Exercise })[]>([])
+  const [starting, setStarting] = useState(false)
+
+  const [mealSeed, setMealSeed] = useState(0)
+
   useEffect(() => {
     if (!profile) return
     let cancelled = false
     async function load() {
-      const [w, hydration, weekly, partnerProfile] = await Promise.all([
+      const [w, hydration, weekly, partnerProfile, programs] = await Promise.all([
         getLatestWeight(profile!.id),
         getTodayHydrationTotal(profile!.id),
         getWeeklySessionCount(profile!.id),
         getPartnerProfile(profile!),
+        listPrograms(profile!.id),
       ])
       if (cancelled) return
       setWeightKg(w?.weight_kg ?? null)
       setHydrationMl(hydration)
       setMyWeeklyCount(weekly)
       setPartner(partnerProfile)
+      const byLocation: Record<Location, Program[]> = {
+        gym: programs.filter((p) => p.location === 'gym'),
+        home: programs.filter((p) => p.location === 'home'),
+      }
+      setProgramsByLocation(byLocation)
+      setLocationChoice(byLocation.gym.length > 0 || byLocation.home.length === 0 ? 'gym' : 'home')
       if (partnerProfile) {
         const pWeekly = await getWeeklySessionCount(partnerProfile.id)
         if (!cancelled) setPartnerWeeklyCount(pWeekly)
@@ -52,6 +76,49 @@ export function Dashboard() {
       cancelled = true
     }
   }, [profile])
+
+  useEffect(() => {
+    if (!profile || loading) return
+    let cancelled = false
+    async function loadCoach() {
+      setCoachLoading(true)
+      const program = programsByLocation[locationChoice][0]
+      if (!program) {
+        if (!cancelled) {
+          setNextDay(null)
+          setNextDayExercises([])
+          setCoachLoading(false)
+        }
+        return
+      }
+      const day = await getNextProgramDay(profile!.id, program)
+      if (cancelled) return
+      setNextDay(day)
+      if (day) {
+        const ex = await getProgramExercises(day.id)
+        if (!cancelled) setNextDayExercises(ex)
+      } else {
+        setNextDayExercises([])
+      }
+      setCoachLoading(false)
+    }
+    loadCoach()
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile, loading, locationChoice, programsByLocation])
+
+  async function handleStartSuggested() {
+    if (!profile || !nextDay) return
+    setStarting(true)
+    try {
+      const session = await startSession(profile.id, nextDay.id, locationChoice)
+      navigate(`/session/${session.id}`)
+    } finally {
+      setStarting(false)
+    }
+  }
 
   if (!profile || loading) return <Spinner />
 
@@ -68,6 +135,8 @@ export function Dashboard() {
         })
       : null
   const hydrationTarget = computeHydrationTargetMl(effectiveWeight, true)
+  const meals = nutrition ? suggestDailyMeals(nutrition, profile.goal, mealSeed) : null
+  const hasAnyProgram = programsByLocation.gym.length > 0 || programsByLocation.home.length > 0
 
   return (
     <div className="flex-1 px-4 py-6 overflow-y-auto space-y-5">
@@ -114,6 +183,38 @@ export function Dashboard() {
         </Card>
       )}
 
+      {meals && (
+        <Card>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-medium text-slate-300">Repas suggérés du jour</h2>
+            <button
+              onClick={() => setMealSeed((s) => s + 1)}
+              className="text-xs text-sky-400 underline underline-offset-2"
+            >
+              🔄 changer
+            </button>
+          </div>
+          <div className="space-y-2.5">
+            {meals.map((m) => (
+              <div key={m.slot} className="rounded-xl bg-slate-800/60 px-3 py-2.5">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <p className="text-[11px] uppercase tracking-wide text-slate-500">{m.slotLabel}</p>
+                    <p className="text-sm font-medium text-slate-100">{m.meal.name}</p>
+                  </div>
+                  <span className="text-xs text-emerald-400 shrink-0">{COST_LABEL[m.meal.costTier - 1]}</span>
+                </div>
+                <p className="text-xs text-slate-400 mt-1">{m.meal.ingredients.join(' · ')}</p>
+                <p className="text-xs text-slate-500 mt-1">{m.meal.instructions}</p>
+                <p className="text-[11px] text-slate-500 mt-1.5">
+                  {m.meal.calories} kcal · {m.meal.protein_g}g P · {m.meal.carbs_g}g G · {m.meal.fat_g}g L
+                </p>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
       <Card className="flex items-center gap-4">
         <ProgressRing value={hydrationMl} max={hydrationTarget} label="hydratation" />
         <div className="flex-1">
@@ -126,15 +227,46 @@ export function Dashboard() {
         </div>
       </Card>
 
-      <Link to="/workouts">
-        <Card className="flex items-center justify-between hover:border-sky-600 transition">
-          <div>
-            <h2 className="font-medium text-slate-100">Séance du jour</h2>
-            <p className="text-sm text-slate-400">Choisir un programme et démarrer</p>
+      <Card>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-medium text-slate-100">Séance du jour</h2>
+          <div className="flex rounded-lg bg-slate-800 p-0.5 text-xs">
+            <button
+              onClick={() => setLocationChoice('home')}
+              className={`px-2.5 py-1 rounded-md ${locationChoice === 'home' ? 'bg-sky-500 text-slate-950 font-medium' : 'text-slate-400'}`}
+            >
+              🏠 Maison
+            </button>
+            <button
+              onClick={() => setLocationChoice('gym')}
+              className={`px-2.5 py-1 rounded-md ${locationChoice === 'gym' ? 'bg-sky-500 text-slate-950 font-medium' : 'text-slate-400'}`}
+            >
+              🏋️ Salle
+            </button>
           </div>
-          <span className="text-2xl">🏋️</span>
-        </Card>
-      </Link>
+        </div>
+
+        {coachLoading ? (
+          <Spinner />
+        ) : !hasAnyProgram ? (
+          <EmptyState>
+            Ajoute un programme dans <Link to="/workouts" className="text-sky-400 underline">Entraînement</Link> pour que ton coach te propose une séance.
+          </EmptyState>
+        ) : !nextDay ? (
+          <EmptyState>
+            Pas de programme {locationChoice === 'home' ? 'maison' : 'salle'} actif. Ajoute-en un dans{' '}
+            <Link to="/workouts" className="text-sky-400 underline">Entraînement</Link>.
+          </EmptyState>
+        ) : (
+          <>
+            <p className="text-sm text-slate-300 mb-2">{nextDay.day_label}</p>
+            <p className="text-xs text-slate-500 mb-3">{nextDayExercises.map((e) => e.exercise.name).join(' · ')}</p>
+            <Button className="w-full" onClick={handleStartSuggested} disabled={starting}>
+              {starting ? 'Démarrage…' : 'Démarrer cette séance'}
+            </Button>
+          </>
+        )}
+      </Card>
 
       {partner && (
         <Card>
