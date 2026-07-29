@@ -139,7 +139,7 @@ export function Dashboard() {
           goal: profile.goal,
         })
       : null
-  const hydrationTarget = computeHydrationTargetMl(effectiveWeight, true)
+  const hydrationTarget = computeHydrationTargetMl(effectiveWeight, true, profile.has_physical_job)
   const meals = nutrition ? suggestDailyMeals(nutrition, profile.goal, mealSeed, profile.takes_protein_shake) : null
   const hasAnyProgram = programsByLocation.gym.length > 0 || programsByLocation.home.length > 0
 

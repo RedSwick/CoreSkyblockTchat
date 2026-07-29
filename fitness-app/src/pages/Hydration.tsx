@@ -22,7 +22,7 @@ export function Hydration() {
       listHydrationLogs(profile.id),
     ])
     setTotal(t)
-    setTarget(computeHydrationTargetMl(latestWeight?.weight_kg ?? profile.target_weight_kg ?? 70, true))
+    setTarget(computeHydrationTargetMl(latestWeight?.weight_kg ?? profile.target_weight_kg ?? 70, true, profile.has_physical_job))
     setHistory(logs)
     setLoading(false)
   }

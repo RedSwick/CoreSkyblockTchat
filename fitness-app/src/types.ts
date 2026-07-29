@@ -16,6 +16,7 @@ export interface Profile {
   couple_id: string | null
   onboarded: boolean
   takes_protein_shake: boolean
+  has_physical_job: boolean
   created_at: string
 }
 

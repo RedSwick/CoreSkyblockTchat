@@ -30,10 +30,12 @@ create table if not exists profiles (
   couple_id uuid references couples(id) on delete set null,
   onboarded boolean not null default false,
   takes_protein_shake boolean not null default false,
+  has_physical_job boolean not null default false,
   created_at timestamptz not null default now()
 );
 
 alter table profiles add column if not exists takes_protein_shake boolean not null default false;
+alter table profiles add column if not exists has_physical_job boolean not null default false;
 
 -- Cree automatiquement un profil vide a l'inscription
 create or replace function handle_new_user()

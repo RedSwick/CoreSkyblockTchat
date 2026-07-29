@@ -89,11 +89,14 @@ export function computeNutritionTargets(params: {
   }
 }
 
-/** Objectif d'hydratation quotidien (ml), plus élevé les jours d'entraînement.
+/** Objectif d'hydratation quotidien (ml), plus élevé les jours d'entraînement et
+ *  pour un métier physique (debout/manuel/extérieur : pertes en sueur plus
+ *  importantes même sans séance ce jour-là).
  *  Boire suffisamment aide à réduire la rétention d'eau (le corps retient
  *  moins l'eau quand l'apport est régulier), donc l'objectif reste volontairement
  *  généreux même en cas de rétention d'eau. */
-export function computeHydrationTargetMl(weightKg: number, isTrainingDay: boolean): number {
+export function computeHydrationTargetMl(weightKg: number, isTrainingDay: boolean, hasPhysicalJob = false): number {
   const base = weightKg * 35
-  return Math.round((base + (isTrainingDay ? 500 : 0)) / 50) * 50
+  const extra = (isTrainingDay ? 500 : 0) + (hasPhysicalJob ? 400 : 0)
+  return Math.round((base + extra) / 50) * 50
 }

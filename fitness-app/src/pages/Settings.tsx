@@ -14,6 +14,7 @@ export function Settings() {
   const [goal, setGoal] = useState<Goal>(profile?.goal ?? 'gain_muscle')
   const [trainingDays, setTrainingDays] = useState(profile?.training_days_per_week ?? 4)
   const [takesProteinShake, setTakesProteinShake] = useState(profile?.takes_protein_shake ?? false)
+  const [hasPhysicalJob, setHasPhysicalJob] = useState(profile?.has_physical_job ?? false)
   const [saved, setSaved] = useState(false)
 
   if (!profile || !user) return null
@@ -28,6 +29,7 @@ export function Settings() {
       goal,
       training_days_per_week: trainingDays,
       takes_protein_shake: takesProteinShake,
+      has_physical_job: hasPhysicalJob,
     })
     await refreshProfile()
     setSaved(true)
@@ -92,6 +94,20 @@ export function Settings() {
             className="h-5 w-5 accent-sky-500"
           />
         </label>
+        <label className="flex items-center justify-between gap-3 rounded-xl bg-slate-800/60 px-3 py-2.5">
+          <span className="text-sm text-slate-200">Métier physique (debout, manuel, extérieur)</span>
+          <input
+            type="checkbox"
+            checked={hasPhysicalJob}
+            onChange={(e) => setHasPhysicalJob(e.target.checked)}
+            className="h-5 w-5 accent-sky-500"
+          />
+        </label>
+        {hasPhysicalJob && (
+          <p className="text-xs text-slate-500 -mt-1">
+            Augmente l'objectif d'hydratation même les jours sans séance (pertes en sueur liées au travail).
+          </p>
+        )}
         <Button className="w-full" onClick={handleSave}>
           {saved ? 'Enregistré ✓' : 'Enregistrer'}
         </Button>

@@ -23,7 +23,7 @@ export async function getConstanceData(profile: Profile): Promise<ConstanceData>
   ])
 
   const weightKg = latestWeight?.weight_kg ?? profile.target_weight_kg ?? 70
-  const targetMl = computeHydrationTargetMl(weightKg, true)
+  const targetMl = computeHydrationTargetMl(weightKg, true, profile.has_physical_job)
 
   const weekly = computeWeeklyWorkoutStreak(sessionDates, profile.training_days_per_week)
   const daily = computeDailyHydrationStreak(hydrationTotals, targetMl)

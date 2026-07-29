@@ -158,7 +158,7 @@ export function Couple() {
   const weightData = partnerWeights.map((w) => ({ date: formatDate(w.logged_date), poids: w.weight_kg }))
 
   const partnerCurrentWeight = partnerWeights[partnerWeights.length - 1]?.weight_kg ?? partner.target_weight_kg ?? 65
-  const hydrationTarget = computeHydrationTargetMl(partnerCurrentWeight, true)
+  const hydrationTarget = computeHydrationTargetMl(partnerCurrentWeight, true, partner.has_physical_job)
   const hourOfDay = new Date().getHours()
   const expectedFraction = Math.min(1, hourOfDay / 20)
   const isBehindOnWater = hourOfDay >= 12 && partnerHydration < hydrationTarget * expectedFraction * 0.6
