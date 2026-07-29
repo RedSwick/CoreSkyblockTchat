@@ -113,6 +113,39 @@ export function Settings() {
         </Button>
       </Card>
 
+      <Card className="space-y-3">
+        <h2 className="text-sm font-medium text-slate-300">Compléments : ce qui marche vraiment</h2>
+        <p className="text-xs text-slate-500">
+          D'après la littérature scientifique actuelle (pas de miracle, juste ce qui a des preuves solides) :
+        </p>
+        <div className="space-y-2">
+          <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/20 px-3 py-2.5">
+            <p className="text-sm text-emerald-300 font-medium">✅ Prouvés — les seuls vraiment indispensables</p>
+            <ul className="text-xs text-slate-400 mt-1 space-y-1 list-disc list-inside">
+              <li><strong className="text-slate-300">Créatine monohydrate</strong>, 3-5g/jour, tous les jours (pas besoin de phase de charge, la régularité compte plus que l'horaire).</li>
+              <li><strong className="text-slate-300">Protéines</strong>, ~1.6-2.2g/kg/jour réparties sur 3-5 prises — c'est déjà calculé pour toi sur le Dashboard.</li>
+            </ul>
+          </div>
+          <div className="rounded-xl bg-sky-500/10 border border-sky-500/20 px-3 py-2.5">
+            <p className="text-sm text-sky-300 font-medium">🔵 Utiles en option (performance à l'entraînement)</p>
+            <ul className="text-xs text-slate-400 mt-1 space-y-1 list-disc list-inside">
+              <li><strong className="text-slate-300">Caféine</strong>, 3-6mg/kg 30-60min avant la séance (~200-400mg pour toi) : plus de répétitions avant l'échec.</li>
+              <li><strong className="text-slate-300">Bêta-alanine</strong>, 3.2-6.4g/jour : retarde la fatigue sur les séries longues (12+ reps). Picotements bénins possibles.</li>
+              <li><strong className="text-slate-300">Citrulline malate</strong>, 6-8g avant la séance : effet plus modeste, surtout utile si tu ressens un manque d'endurance musculaire.</li>
+            </ul>
+          </div>
+          <div className="rounded-xl bg-slate-800/60 border border-slate-700/60 px-3 py-2.5">
+            <p className="text-sm text-slate-300 font-medium">⚪ Pas nécessaire dans ton cas</p>
+            <p className="text-xs text-slate-500 mt-1">
+              Les <strong className="text-slate-400">BCAA</strong> n'apportent quasiment rien si tes apports en protéines totales sont déjà suffisants (ce qui est ton cas avec ton shake + ton alimentation) — les études montrent qu'un acide aminé complet (whey, viande, œufs...) fait mieux. Tu peux garder ta créatine et sauter les BCAA sans rien perdre, et économiser sur le budget courses.
+            </p>
+          </div>
+        </div>
+        <p className="text-[11px] text-slate-600">
+          Rien ne remplace le sommeil, l'entraînement progressif et un apport calorique adapté — les compléments ne font qu'ajouter quelques % par-dessus.
+        </p>
+      </Card>
+
       <Button variant="danger" className="w-full" onClick={signOut}>
         Se déconnecter
       </Button>

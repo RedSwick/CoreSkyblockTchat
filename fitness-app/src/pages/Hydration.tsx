@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { addHydration, getLatestWeight, getTodayHydrationTotal, listHydrationLogs } from '../lib/api'
 import { computeHydrationTargetMl } from '../lib/nutrition'
+import { enqueueAction, isNetworkError } from '../lib/offlineQueue'
 import { Button, Card, EmptyState, PageTitle, ProgressRing, Spinner } from '../components/ui'
 import type { HydrationLog } from '../types'
 
@@ -35,8 +36,16 @@ export function Hydration() {
   async function handleAdd(amount: number) {
     if (!profile) return
     setTotal((t) => t + amount)
-    await addHydration(profile.id, amount)
-    load()
+    try {
+      await addHydration(profile.id, amount)
+      load()
+    } catch (err) {
+      if (isNetworkError(err)) {
+        enqueueAction({ type: 'add_hydration', payload: { profileId: profile.id, amountMl: amount } })
+      } else {
+        setTotal((t) => t - amount)
+      }
+    }
   }
 
   if (!profile || loading) return <Spinner />

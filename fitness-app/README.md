@@ -3,7 +3,7 @@
 App de suivi muscu / diète / hydratation pour deux, chacun sur son téléphone,
 avec visibilité sur la constance et l'évolution de l'autre.
 
-- **Frontend** : React + Vite + TypeScript + Tailwind, PWA installable (fonctionne hors-ligne pour l'affichage, se synchronise dès que le réseau revient).
+- **Frontend** : React + Vite + TypeScript + Tailwind, PWA installable (fonctionne hors-ligne pour l'affichage, se synchronise dès que le réseau revient — voir "Fiabilité & pas de perte de données" plus bas).
 - **Backend** : [Supabase](https://supabase.com) (Postgres + Auth + API auto-générée), gratuit pour ce cas d'usage. Pas de serveur à maintenir.
 
 ## 1. Créer le projet Supabase (5 min, gratuit)
@@ -58,7 +58,7 @@ Le plus simple : [Vercel](https://vercel.com) ou [Netlify](https://netlify.com),
 
 ## Ajustement calorique automatique
 
-Un vrai coach ne se contente pas d'une formule figée : il regarde si ça marche vraiment et corrige. Sur le Dashboard, `src/lib/weightTrend.ts` compare ta moyenne de poids des 7 derniers jours à celle des 7 jours d'avant (pour lisser les fluctuations d'eau). Si ta prise de muscle stagne (ou si tu prends trop vite en surplus, ou que ta perte de gras cale/est trop rapide en déficit), une bannière **🎯 Ajustement calorique suggéré** propose +150/-150 kcal/jour avec un bouton Appliquer/Ignorer. L'ajustement choisi (`profiles.calorie_adjustment_kcal`) s'ajoute en permanence à ton objectif calorique, et la bannière ne revient pas avant ~2 semaines (`calorie_adjustment_updated_at`) pour laisser le temps de voir l'effet.
+Un vrai coach ne se contente pas d'une formule figée : il regarde si ça marche vraiment et corrige. Sur le Dashboard, `src/lib/weightTrend.ts` compare ta moyenne de poids des 7 derniers jours à celle des 7 jours d'avant (pour lisser les fluctuations d'eau). Si ta prise de muscle stagne (moins de +0.05kg/sem) ou si tu prends trop vite (plus de +0.35kg/sem — au-delà, ça part surtout en graisse), ou que ta perte de gras cale/est trop rapide en déficit, une bannière **🎯 Ajustement calorique suggéré** propose +150/-150 kcal/jour avec un bouton Appliquer/Ignorer. L'ajustement choisi (`profiles.calorie_adjustment_kcal`) s'ajoute en permanence à ton objectif calorique, et la bannière ne revient pas avant ~2 semaines (`calorie_adjustment_updated_at`) pour laisser le temps de voir l'effet.
 
 ## Bilan de la semaine
 
@@ -66,7 +66,19 @@ Carte **📋 Bilan de la semaine** sur le Dashboard (`src/lib/weeklyRecap.ts`) :
 
 ## Mensurations & photos de progression
 
-Dans l'onglet **Progrès**, une carte **Mensurations** te laisse logger taille/poitrine/bras/cuisse (cm) + une photo, un jour à la fois comme le poids. Un sélecteur affiche la courbe de la mesure choisie, et une comparaison photo **Avant / Maintenant** (première et dernière photo enregistrées) montre le "sec" que tu prends au-delà du chiffre sur la balance. Les photos sont stockées dans un bucket Supabase Storage privé (`progress-photos`), chacun ne peut accéder qu'aux siennes et à celles de son/sa partenaire (mêmes règles RLS que le reste), servies via URL signée temporaire.
+Dans l'onglet **Progrès**, une carte **Mensurations** te laisse logger taille/poitrine/bras/cuisse (cm) + une photo, un jour à la fois comme le poids. Un sélecteur affiche la courbe de la mesure choisie, et une comparaison photo **Avant / Maintenant** (première et dernière photo enregistrées) montre le "sec" que tu prends au-delà du chiffre sur la balance. Les photos sont stockées dans un bucket Supabase Storage privé (`progress-photos`), chacun ne peut accéder qu'aux siennes et à celles de son/sa partenaire (mêmes règles RLS que le reste), servies via URL signée temporaire. La carte "Progression sur un exercice" affiche aussi ton **1RM estimé** (formule d'Epley : poids × (1 + reps/30) sur ta meilleure série), pratique pour situer ta force réelle sans avoir à tester un vrai max.
+
+## Timer de repos
+
+Pendant une séance, après chaque série loggée, un bandeau collant en haut de l'écran lance un compte à rebours basé sur le temps de repos cible de l'exercice (`target_rest_sec`), avec vibration à la fin, bouton **+15s**, et **Passer** pour l'ignorer. Gap identifié en comparant l'app à Strong/Hevy/Fitbod (`src/pages/SessionLogger.tsx`).
+
+## Compléments alimentaires : ce qui marche vraiment
+
+Dans **Réglages**, une carte résume ce que la littérature actuelle valide vraiment : **créatine monohydrate** (3-5g/jour) et **protéines suffisantes** (déjà calculées pour toi) sont les deux seuls compléments avec des preuves solides et directes sur la prise de muscle. En option pour la performance à l'entraînement : caféine, bêta-alanine, citrulline malate (dosages evidence-based indiqués). Les **BCAA sont explicitement déconseillés** dans ton cas : sans intérêt démontré si l'apport total en protéines est déjà suffisant (ce qui est ton cas) — autant économiser ce budget.
+
+## Fiabilité & pas de perte de données
+
+En salle de sport le réseau est capricieux. Les actions les plus critiques (série loggée, eau ajoutée, pesée) passent maintenant par une file d'attente locale (`src/lib/offlineQueue.ts`, `localStorage`) : si l'écriture Supabase échoue pour une vraie coupure réseau, l'action reste visible dans l'app (optimistic UI) et est automatiquement rejouée dès que la connexion revient (évènement `online`) ou au prochain démarrage de l'app — jamais silencieusement perdue. Une petite pastille 🔌 dans l'en-tête indique le nombre d'actions en attente de synchronisation. Les erreurs non liées au réseau (droits, validation) ne sont pas mises en queue et remontent normalement.
 
 ## Coach du jour
 

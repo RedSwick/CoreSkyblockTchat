@@ -42,7 +42,9 @@ export interface CalorieAdjustmentSuggestion {
  * se fier indéfiniment à une formule de départ. Cibles usuelles : ~0.15-0.35
  * kg/semaine en prise de masse sèche (lean bulk), ~0.3-0.7% du poids de corps
  * par semaine en perte de gras. En dehors de ces fourchettes, propose un
- * ajustement de 150 kcal/jour dans le bon sens.
+ * ajustement de 150 kcal/jour dans le bon sens. Le seuil haut en prise de
+ * masse est volontairement strict (0.35 et non 0.5+) : au-delà, le surplus
+ * part surtout en graisse, pas en muscle.
  */
 export function suggestCalorieAdjustment(
   goal: Goal,
@@ -58,10 +60,10 @@ export function suggestCalorieAdjustment(
         note: `Ton poids stagne (${weeklyRateKg >= 0 ? '+' : ''}${weeklyRateKg.toFixed(2)}kg/sem en moyenne) : +150 kcal/jour pour relancer la prise de muscle.`,
       }
     }
-    if (weeklyRateKg > 0.5) {
+    if (weeklyRateKg > 0.35) {
       return {
         deltaKcal: -150,
-        note: `Tu prends vite (+${weeklyRateKg.toFixed(2)}kg/sem) : -150 kcal/jour pour rester le plus sec possible.`,
+        note: `Tu prends trop vite (+${weeklyRateKg.toFixed(2)}kg/sem, ça part surtout en graisse au-delà de 0.35kg/sem) : -150 kcal/jour pour rester sec.`,
       }
     }
     return null

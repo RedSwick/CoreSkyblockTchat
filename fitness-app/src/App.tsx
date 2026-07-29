@@ -3,7 +3,8 @@ import { BrowserRouter, Link, Navigate, Route, Routes, useLocation } from 'react
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { Spinner } from './components/ui'
 import { BottomNav } from './components/BottomNav'
-import { getUnreadCount, subscribeToIncomingMessages } from './lib/api'
+import { addHydration, addSet, getUnreadCount, markSetAsPr, subscribeToIncomingMessages, upsertWeightLog } from './lib/api'
+import { flushOfflineQueue, getQueueSize } from './lib/offlineQueue'
 import { Login } from './pages/Login'
 import { Onboarding } from './pages/Onboarding'
 import { Dashboard } from './pages/Dashboard'
@@ -29,10 +30,41 @@ function Gate({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
+const QUEUE_EXECUTORS = {
+  add_set: async (p: { sessionId: string; exerciseId: string; setNumber: number; weightKg: number | null; reps: number | null; rpe: number | null; isPr: boolean }) => {
+    const created = await addSet(p)
+    if (p.isPr) await markSetAsPr(created.id)
+  },
+  add_hydration: (p: { profileId: string; amountMl: number }) => addHydration(p.profileId, p.amountMl),
+  upsert_weight: (p: { profileId: string; weightKg: number; date: string }) => upsertWeightLog(p.profileId, p.weightKg, p.date),
+}
+
+/** Rejoue la file d'attente offline au démarrage et dès que la connexion revient. */
+function useOfflineSync() {
+  const [pendingCount, setPendingCount] = useState(getQueueSize())
+
+  useEffect(() => {
+    async function flush() {
+      await flushOfflineQueue(QUEUE_EXECUTORS)
+      setPendingCount(getQueueSize())
+    }
+    flush()
+    window.addEventListener('online', flush)
+    const interval = setInterval(flush, 60_000)
+    return () => {
+      window.removeEventListener('online', flush)
+      clearInterval(interval)
+    }
+  }, [])
+
+  return pendingCount
+}
+
 function Header() {
   const { profile } = useAuth()
   const [unread, setUnread] = useState(0)
   const location = useLocation()
+  const pendingSync = useOfflineSync()
 
   useEffect(() => {
     if (!profile) return
@@ -59,6 +91,11 @@ function Header() {
         <span className="font-bold tracking-tight gradient-text">Duo Fit</span>
       </Link>
       <div className="flex items-center gap-3">
+        {pendingSync > 0 && (
+          <span className="text-xs text-amber-400 flex items-center gap-1" title="En attente de connexion pour synchroniser">
+            🔌 {pendingSync}
+          </span>
+        )}
         <Link to="/messages" className="relative text-slate-300 text-lg leading-none">
           💬
           {unread > 0 && (

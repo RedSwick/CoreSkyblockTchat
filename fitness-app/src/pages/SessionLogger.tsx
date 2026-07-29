@@ -16,6 +16,7 @@ import {
 } from '../lib/api'
 import { computeExerciseRank, hasRankConfig } from '../lib/ranks'
 import { EFFORT_LABEL, EFFORT_RPE, suggestProgression, type Effort } from '../lib/progression'
+import { enqueueAction, isNetworkError } from '../lib/offlineQueue'
 import { RankBadge } from '../components/RankBadge'
 import { MuscleIcon } from '../components/MuscleMap'
 import { Button, Card, PageTitle, Spinner } from '../components/ui'
@@ -38,6 +39,19 @@ export function SessionLogger() {
   const [drafts, setDrafts] = useState<Record<string, { weight: string; reps: string; effort: Effort | null }>>({})
   const [celebrating, setCelebrating] = useState<string | null>(null)
   const [finishing, setFinishing] = useState(false)
+  const [restTimer, setRestTimer] = useState<{ exerciseId: string; secondsLeft: number; total: number } | null>(null)
+
+  useEffect(() => {
+    if (!restTimer) return
+    if (restTimer.secondsLeft <= 0) {
+      if (navigator.vibrate) navigator.vibrate([200, 100, 200])
+      return
+    }
+    const id = setTimeout(() => {
+      setRestTimer((t) => (t ? { ...t, secondsLeft: t.secondsLeft - 1 } : t))
+    }, 1000)
+    return () => clearTimeout(id)
+  }, [restTimer])
 
   useEffect(() => {
     if (!sessionId || !profile) return
@@ -104,14 +118,36 @@ export function SessionLogger() {
     const weight = draft.weight ? Number(draft.weight) : null
     const reps = draft.reps ? Number(draft.reps) : null
     const rpe = draft.effort ? EFFORT_RPE[draft.effort] : null
-    const created = await addSet({ sessionId, exerciseId, setNumber, weightKg: weight, reps, rpe })
-
     const oldBest = bests[exerciseId]?.maxWeight ?? null
     const isRecord = weight !== null && (oldBest === null || weight > oldBest)
 
+    let created: SessionSet
+    try {
+      created = await addSet({ sessionId, exerciseId, setNumber, weightKg: weight, reps, rpe })
+      if (isRecord) {
+        await markSetAsPr(created.id)
+        created.is_pr = true
+      }
+    } catch (err) {
+      // Coupure réseau en salle de sport : on garde la série côté app (file
+      // d'attente locale) plutôt que de la perdre — elle sera synchronisée
+      // dès que la connexion revient (voir offlineQueue.ts).
+      if (!isNetworkError(err)) throw err
+      enqueueAction({ type: 'add_set', payload: { sessionId, exerciseId, setNumber, weightKg: weight, reps, rpe, isPr: isRecord } })
+      created = {
+        id: `pending-${crypto.randomUUID()}`,
+        session_id: sessionId,
+        exercise_id: exerciseId,
+        set_number: setNumber,
+        weight_kg: weight,
+        reps,
+        rpe,
+        is_pr: isRecord,
+        created_at: new Date().toISOString(),
+      }
+    }
+
     if (isRecord) {
-      await markSetAsPr(created.id)
-      created.is_pr = true
       setBests((prev) => ({ ...prev, [exerciseId]: { maxWeight: weight, maxReps: prev[exerciseId]?.maxReps ?? null } }))
 
       if (hasRankConfig(pe.exercise.name)) {
@@ -131,12 +167,15 @@ export function SessionLogger() {
           kind: 'pr_cheer',
           body: `🏆 ${profile.display_name} vient de faire un nouveau record à ${pe.exercise.name} : ${weight}kg !`,
           relatedExerciseId: exerciseId,
-        })
+        }).catch(() => {})
       }
     }
 
     setLoggedSets((prev) => ({ ...prev, [exerciseId]: [...(prev[exerciseId] ?? []), created] }))
     updateDraft(exerciseId, { weight: '', reps: '', effort: null })
+    if (pe.target_rest_sec > 0) {
+      setRestTimer({ exerciseId, secondsLeft: pe.target_rest_sec, total: pe.target_rest_sec })
+    }
   }
 
   async function handleFinish() {
@@ -152,9 +191,41 @@ export function SessionLogger() {
 
   if (loading || !session || !profile) return <Spinner />
 
+  const restExerciseName = restTimer ? exercises.find((e) => e.exercise_id === restTimer.exerciseId)?.exercise.name : null
+  const restPct = restTimer ? Math.max(0, restTimer.secondsLeft / restTimer.total) : 0
+  const restDone = restTimer !== null && restTimer.secondsLeft <= 0
+
   return (
     <div className="flex-1 px-4 py-6 overflow-y-auto space-y-4 pb-24">
       <PageTitle title="Séance en cours" subtitle={new Date(session.session_date).toLocaleDateString('fr-FR')} />
+
+      {restTimer && (
+        <Card className={`sticky top-2 z-10 ${restDone ? 'border border-emerald-500/50 bg-emerald-500/10' : 'border border-sky-500/40 bg-sky-500/5'}`}>
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs text-slate-400">{restDone ? 'Repos terminé' : `Repos · ${restExerciseName}`}</p>
+              <p className={`text-2xl font-bold tabular-nums ${restDone ? 'text-emerald-400' : 'text-sky-300'}`}>
+                {restDone ? 'GO 💪' : `${restTimer.secondsLeft}s`}
+              </p>
+            </div>
+            <div className="flex gap-2">
+              {!restDone && (
+                <Button variant="secondary" className="py-1.5 px-3 text-xs" onClick={() => setRestTimer((t) => (t ? { ...t, secondsLeft: t.secondsLeft + 15, total: t.total + 15 } : t))}>
+                  +15s
+                </Button>
+              )}
+              <Button variant="ghost" className="py-1.5 px-3 text-xs" onClick={() => setRestTimer(null)}>
+                {restDone ? 'Fermer' : 'Passer'}
+              </Button>
+            </div>
+          </div>
+          {!restDone && (
+            <div className="h-1 rounded-full bg-slate-800 overflow-hidden mt-2">
+              <div className="h-full bg-gradient-to-r from-sky-400 to-indigo-500 transition-all" style={{ width: `${restPct * 100}%` }} />
+            </div>
+          )}
+        </Card>
+      )}
 
       {exercises.length === 0 && (
         <Card>

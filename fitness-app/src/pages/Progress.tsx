@@ -8,10 +8,12 @@ import {
   listExercises,
   listSessions,
   listWeightLogs,
+  todayIso,
   upsertBodyMeasurement,
   upsertWeightLog,
   uploadProgressPhoto,
 } from '../lib/api'
+import { enqueueAction, isNetworkError } from '../lib/offlineQueue'
 import { Button, Card, EmptyState, Input, Label, PageTitle, Select, Spinner } from '../components/ui'
 import type { BodyMeasurement, Exercise, WeightLog, WorkoutSession } from '../types'
 
@@ -36,7 +38,7 @@ export function Progress() {
   const [newWeight, setNewWeight] = useState('')
   const [exercises, setExercises] = useState<Exercise[]>([])
   const [selectedExercise, setSelectedExercise] = useState<string>('')
-  const [exerciseHistory, setExerciseHistory] = useState<{ session_date: string; weight_kg: number | null }[]>([])
+  const [exerciseHistory, setExerciseHistory] = useState<{ session_date: string; weight_kg: number | null; reps: number | null }[]>([])
 
   const [measurements, setMeasurements] = useState<BodyMeasurement[]>([])
   const [selectedMetric, setSelectedMetric] = useState<MeasurementMetric>('waist_cm')
@@ -98,10 +100,20 @@ export function Progress() {
 
   async function handleAddWeight() {
     if (!profile || !newWeight) return
-    await upsertWeightLog(profile.id, Number(newWeight))
-    setNewWeight('')
-    const w = await listWeightLogs(profile.id)
-    setWeightLogs(w)
+    const weightKg = Number(newWeight)
+    const date = todayIso()
+    try {
+      await upsertWeightLog(profile.id, weightKg, date)
+      setNewWeight('')
+      const w = await listWeightLogs(profile.id)
+      setWeightLogs(w)
+    } catch (err) {
+      if (isNetworkError(err)) {
+        enqueueAction({ type: 'upsert_weight', payload: { profileId: profile.id, weightKg, date } })
+        setNewWeight('')
+        setWeightLogs((logs) => [...logs.filter((l) => l.logged_date !== date), { id: `pending-${date}`, profile_id: profile.id, logged_date: date, weight_kg: weightKg, notes: null, created_at: new Date().toISOString() }])
+      }
+    }
   }
 
   async function handleSaveMeasurement() {
@@ -136,6 +148,12 @@ export function Progress() {
     charge: h.weight_kg,
     idx: i,
   }))
+  const estimated1Rm = exerciseHistory.reduce<number | null>((best, h) => {
+    if (h.weight_kg === null || h.reps === null || h.reps === 0) return best
+    // Formule d'Epley : fiable jusqu'à ~10-12 reps, approximative au-delà.
+    const oneRm = h.weight_kg * (1 + h.reps / 30)
+    return best === null || oneRm > best ? oneRm : best
+  }, null)
 
   const first = weightLogs[0]
   const last = weightLogs[weightLogs.length - 1]
@@ -290,7 +308,10 @@ export function Progress() {
       </Card>
 
       <Card>
-        <h2 className="text-sm font-medium text-slate-300 mb-2">Progression sur un exercice</h2>
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-sm font-medium text-slate-300">Progression sur un exercice</h2>
+          {estimated1Rm !== null && <span className="text-xs text-amber-400">1RM est. ~{Math.round(estimated1Rm)}kg</span>}
+        </div>
         <Select value={selectedExercise} onChange={(e) => setSelectedExercise(e.target.value)}>
           <option value="">Choisir un exercice…</option>
           {exercises.map((ex) => (
