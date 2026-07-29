@@ -51,8 +51,10 @@ export function computeNutritionTargets(params: {
   age: number
   activity: ActivityLevel
   goal: Goal
+  /** Ajustement coach (`profiles.calorie_adjustment_kcal`) basé sur la tendance de poids réelle. */
+  adjustmentKcal?: number
 }): NutritionTarget {
-  const { sex, weightKg, heightCm, age, activity, goal } = params
+  const { sex, weightKg, heightCm, age, activity, goal, adjustmentKcal = 0 } = params
   const maintenance = tdee(sex, weightKg, heightCm, age, activity)
 
   let calories: number
@@ -75,6 +77,8 @@ export function computeNutritionTargets(params: {
       proteinPerKg = 1.8
       fatPerKg = 0.9
   }
+
+  calories += adjustmentKcal
 
   const protein_g = Math.round(proteinPerKg * weightKg)
   const fat_g = Math.round(fatPerKg * weightKg)

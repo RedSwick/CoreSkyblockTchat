@@ -9,8 +9,8 @@ avec visibilité sur la constance et l'évolution de l'autre.
 ## 1. Créer le projet Supabase (5 min, gratuit)
 
 1. Va sur [supabase.com](https://supabase.com), crée un compte et un nouveau projet.
-2. Dans **SQL Editor**, colle le contenu de [`supabase/schema.sql`](./supabase/schema.sql) et exécute-le. Ça crée toutes les tables, la sécurité (chacun ne voit que ses données + celles de son/sa partenaire), la bibliothèque d'exercices et la messagerie couple.
-   - Si tu avais déjà exécuté une version précédente de `schema.sql` (avant l'ajout des messages), exécute plutôt [`supabase/migration_002_messages.sql`](./supabase/migration_002_messages.sql) pour ne rajouter que ce qui manque.
+2. Dans **SQL Editor**, colle le contenu de [`supabase/schema.sql`](./supabase/schema.sql) et exécute-le. Ça crée toutes les tables, la sécurité (chacun ne voit que ses données + celles de son/sa partenaire), la bibliothèque d'exercices, la messagerie couple, et le bucket de stockage privé pour les photos de progression (`progress-photos`).
+   - Si tu avais déjà exécuté une version précédente de `schema.sql`, regarde la liste des `migration_00N_*.sql` plus bas et exécute celles qui manquent, dans l'ordre.
 3. Dans **Authentication > Providers**, l'e-mail/mot de passe est activé par défaut. Pour un usage perso à deux, tu peux désactiver la confirmation par e-mail dans **Authentication > Settings** ("Confirm email") pour ne pas avoir à cliquer un lien de confirmation.
 4. Dans **Project Settings > API**, récupère `Project URL` et la clé `anon public`.
 5. Dans **Database > Replication**, vérifie que la table `messages` est bien cochée dans la publication `supabase_realtime` (normalement fait automatiquement par le script SQL) — c'est ce qui permet à la cloche de notifications de se mettre à jour en direct.
@@ -56,6 +56,18 @@ Le plus simple : [Vercel](https://vercel.com) ou [Netlify](https://netlify.com),
 - **Semaine de décharge** : après 6 semaines d'affilée où tu as atteint ton objectif de séances, une bannière sur le Dashboard te propose de réduire un peu le volume/les charges cette semaine (périodisation classique pour éviter le plateau et le surmenage sur un rythme 5-6x/semaine).
 - **Repas suggérés du jour** (`src/lib/meals.ts`) : petit-déj/déjeuner/dîner/collation choisis parmi plus de 70 recettes économiques (courses type Lidl/Aldi, sans poisson, beaucoup de variantes pâtes/poulet mais aussi porc, bœuf, dinde, œufs, légumineuses...) pour coller approximativement aux calories/macros du jour, en priorisant les moins chères. Bouton "🔄 changer" pour piocher une autre suggestion proche des mêmes macros. Si tu actives "Je prends un shake de protéine tous les jours" dans Réglages, un 5ᵉ item fixe (shake + rappel créatine) s'ajoute et ses macros sont déduites des objectifs des autres repas pour ne pas compter en double.
 
+## Ajustement calorique automatique
+
+Un vrai coach ne se contente pas d'une formule figée : il regarde si ça marche vraiment et corrige. Sur le Dashboard, `src/lib/weightTrend.ts` compare ta moyenne de poids des 7 derniers jours à celle des 7 jours d'avant (pour lisser les fluctuations d'eau). Si ta prise de muscle stagne (ou si tu prends trop vite en surplus, ou que ta perte de gras cale/est trop rapide en déficit), une bannière **🎯 Ajustement calorique suggéré** propose +150/-150 kcal/jour avec un bouton Appliquer/Ignorer. L'ajustement choisi (`profiles.calorie_adjustment_kcal`) s'ajoute en permanence à ton objectif calorique, et la bannière ne revient pas avant ~2 semaines (`calorie_adjustment_updated_at`) pour laisser le temps de voir l'effet.
+
+## Bilan de la semaine
+
+Carte **📋 Bilan de la semaine** sur le Dashboard (`src/lib/weeklyRecap.ts`) : séances faites vs objectif, tonnage total soulevé (Σ poids × reps), nombre de records battus, tendance de poids et streak d'hydratation — pour voir en un coup d'œil si la semaine a été bonne, sans avoir à recouper toi-même plusieurs pages.
+
+## Mensurations & photos de progression
+
+Dans l'onglet **Progrès**, une carte **Mensurations** te laisse logger taille/poitrine/bras/cuisse (cm) + une photo, un jour à la fois comme le poids. Un sélecteur affiche la courbe de la mesure choisie, et une comparaison photo **Avant / Maintenant** (première et dernière photo enregistrées) montre le "sec" que tu prends au-delà du chiffre sur la balance. Les photos sont stockées dans un bucket Supabase Storage privé (`progress-photos`), chacun ne peut accéder qu'aux siennes et à celles de son/sa partenaire (mêmes règles RLS que le reste), servies via URL signée temporaire.
+
 ## Coach du jour
 
 Sur le Dashboard, un sélecteur **🏠 Maison / 🏋️ Salle** te laisse dire où tu es aujourd'hui. L'app regarde ton programme actif pour cette localisation, retrouve la dernière séance que tu y as faite, et te propose automatiquement le jour suivant dans la rotation (ex. tu as fait Push lundi en salle → elle propose Pull mercredi) avec un bouton pour démarrer directement. Chaque localisation garde sa propre rotation : si tu alternes salle et maison de façon imprévisible, chacune progresse indépendamment sur son propre programme.
@@ -95,6 +107,8 @@ supabase/
   migration_002_messages.sql   à lancer seulement si schema.sql avait déjà été exécuté avant
   migration_003_protein_shake.sql   idem, pour le suivi shake protéiné/BCAA/créatine
   migration_004_more_exercises.sql  idem, pour les 11 exercices ajoutés (fessiers/ischios/mollets/bras/abdos)
+  migration_005_physical_job.sql    idem, pour le toggle "métier physique" (hydratation)
+  migration_006_coach_features.sql idem, pour l'ajustement calorique auto + mensurations/photos
 ```
 
 Pour ajuster ou ajouter des programmes d'entraînement par défaut, modifie `src/lib/programs.ts`

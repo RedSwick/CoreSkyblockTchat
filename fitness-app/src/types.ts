@@ -17,6 +17,8 @@ export interface Profile {
   onboarded: boolean
   takes_protein_shake: boolean
   has_physical_job: boolean
+  calorie_adjustment_kcal: number
+  calorie_adjustment_updated_at: string | null
   created_at: string
 }
 
@@ -31,6 +33,19 @@ export interface WeightLog {
   profile_id: string
   logged_date: string
   weight_kg: number
+  notes: string | null
+  created_at: string
+}
+
+export interface BodyMeasurement {
+  id: string
+  profile_id: string
+  logged_date: string
+  waist_cm: number | null
+  chest_cm: number | null
+  arm_cm: number | null
+  thigh_cm: number | null
+  photo_path: string | null
   notes: string | null
   created_at: string
 }

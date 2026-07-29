@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { startOfISOWeek, format as formatDateFns } from 'date-fns'
 import { useAuth } from '../contexts/AuthContext'
 import {
   getLatestWeight,
@@ -7,16 +8,22 @@ import {
   getPartnerProfile,
   getProgramExercises,
   getTodayHydrationTotal,
+  getWeekPrCount,
+  getWeekTonnageKg,
   getWeeklySessionCount,
   listPrograms,
+  listWeightLogs,
   startSession,
+  updateProfile,
 } from '../lib/api'
 import { computeHydrationTargetMl, computeNutritionTargets, getAge } from '../lib/nutrition'
 import { suggestDailyMeals } from '../lib/meals'
 import { getConstanceData, type ConstanceData } from '../lib/constance'
 import { isDeloadWeek } from '../lib/progression'
+import { computeWeightTrend, suggestCalorieAdjustment } from '../lib/weightTrend'
+import { computeWeeklyRecap } from '../lib/weeklyRecap'
 import { Button, Card, EmptyState, PageTitle, ProgressRing, Spinner, StatPill } from '../components/ui'
-import type { Location, Profile, Program, ProgramDay, ProgramExercise, Exercise } from '../types'
+import type { Location, Profile, Program, ProgramDay, ProgramExercise, Exercise, WeightLog } from '../types'
 
 const GOAL_LABEL: Record<string, string> = {
   gain_muscle: 'Prise de muscle sèche',
@@ -27,10 +34,14 @@ const GOAL_LABEL: Record<string, string> = {
 const COST_LABEL = ['€', '€€', '€€€']
 
 export function Dashboard() {
-  const { profile } = useAuth()
+  const { profile, refreshProfile } = useAuth()
   const navigate = useNavigate()
   const [loading, setLoading] = useState(true)
   const [weightKg, setWeightKg] = useState<number | null>(null)
+  const [weightLogs, setWeightLogs] = useState<WeightLog[]>([])
+  const [weekTonnageKg, setWeekTonnageKg] = useState(0)
+  const [weekPrCount, setWeekPrCount] = useState(0)
+  const [adjustmentHandled, setAdjustmentHandled] = useState(false)
   const [hydrationMl, setHydrationMl] = useState(0)
   const [myWeeklyCount, setMyWeeklyCount] = useState(0)
   const [partner, setPartner] = useState<Profile | null>(null)
@@ -50,13 +61,17 @@ export function Dashboard() {
     if (!profile) return
     let cancelled = false
     async function load() {
-      const [w, hydration, weekly, partnerProfile, programs, constanceData] = await Promise.all([
+      const weekStartIso = formatDateFns(startOfISOWeek(new Date()), 'yyyy-MM-dd')
+      const [w, hydration, weekly, partnerProfile, programs, constanceData, logs, tonnage, prCount] = await Promise.all([
         getLatestWeight(profile!.id),
         getTodayHydrationTotal(profile!.id),
         getWeeklySessionCount(profile!.id),
         getPartnerProfile(profile!),
         listPrograms(profile!.id),
         getConstanceData(profile!),
+        listWeightLogs(profile!.id, 30),
+        getWeekTonnageKg(profile!.id, weekStartIso),
+        getWeekPrCount(profile!.id, weekStartIso),
       ])
       if (cancelled) return
       setWeightKg(w?.weight_kg ?? null)
@@ -64,6 +79,9 @@ export function Dashboard() {
       setMyWeeklyCount(weekly)
       setPartner(partnerProfile)
       setConstance(constanceData)
+      setWeightLogs(logs)
+      setWeekTonnageKg(tonnage)
+      setWeekPrCount(prCount)
       const byLocation: Record<Location, Program[]> = {
         gym: programs.filter((p) => p.location === 'gym'),
         home: programs.filter((p) => p.location === 'home'),
@@ -125,6 +143,23 @@ export function Dashboard() {
     }
   }
 
+  async function handleApplyAdjustment(deltaKcal: number) {
+    if (!profile) return
+    setAdjustmentHandled(true)
+    await updateProfile(profile.id, {
+      calorie_adjustment_kcal: profile.calorie_adjustment_kcal + deltaKcal,
+      calorie_adjustment_updated_at: new Date().toISOString(),
+    })
+    await refreshProfile()
+  }
+
+  async function handleDismissAdjustment() {
+    if (!profile) return
+    setAdjustmentHandled(true)
+    await updateProfile(profile.id, { calorie_adjustment_updated_at: new Date().toISOString() })
+    await refreshProfile()
+  }
+
   if (!profile || loading) return <Spinner />
 
   const effectiveWeight = weightKg ?? profile.target_weight_kg ?? 70
@@ -137,11 +172,30 @@ export function Dashboard() {
           age: getAge(profile.birth_date),
           activity: profile.activity_level,
           goal: profile.goal,
+          adjustmentKcal: profile.calorie_adjustment_kcal,
         })
       : null
   const hydrationTarget = computeHydrationTargetMl(effectiveWeight, true, profile.has_physical_job)
   const meals = nutrition ? suggestDailyMeals(nutrition, profile.goal, mealSeed, profile.takes_protein_shake) : null
   const hasAnyProgram = programsByLocation.gym.length > 0 || programsByLocation.home.length > 0
+
+  const weightTrend = computeWeightTrend(weightLogs)
+  const calorieSuggestion = suggestCalorieAdjustment(profile.goal, weightTrend.weeklyRateKg, effectiveWeight)
+  const daysSinceAdjustment = profile.calorie_adjustment_updated_at
+    ? (Date.now() - new Date(profile.calorie_adjustment_updated_at).getTime()) / (1000 * 60 * 60 * 24)
+    : Infinity
+  const showCalorieSuggestion = !adjustmentHandled && calorieSuggestion !== null && daysSinceAdjustment >= 13
+
+  const weeklyRecap = constance
+    ? computeWeeklyRecap({
+        sessionsCount: constance.weekly.thisWeekCount,
+        sessionsTarget: constance.weekly.thisWeekTarget,
+        tonnageKg: weekTonnageKg,
+        prCount: weekPrCount,
+        weightTrend,
+        hydrationStreakDays: constance.daily.currentStreakDays,
+      })
+    : null
 
   return (
     <div className="flex-1 px-4 py-6 overflow-y-auto space-y-5">
@@ -172,6 +226,24 @@ export function Dashboard() {
               <p className="text-[11px] text-slate-400">bien hydraté(e)</p>
             </div>
           </div>
+        </Card>
+      )}
+
+      {weeklyRecap && (
+        <Card>
+          <h2 className="text-sm font-medium text-slate-300 mb-1">📋 Bilan de la semaine</h2>
+          <p className="text-sm text-slate-100">{weeklyRecap.note}</p>
+          <p className="text-xs text-slate-500 mt-1">
+            {weeklyRecap.sessionsCount}/{weeklyRecap.sessionsTarget} séances
+            {weeklyRecap.weightTrend.weeklyRateKg !== null && (
+              <>
+                {' '}
+                · poids {weeklyRecap.weightTrend.weeklyRateKg >= 0 ? '+' : ''}
+                {weeklyRecap.weightTrend.weeklyRateKg.toFixed(2)}kg/sem
+              </>
+            )}
+            {weeklyRecap.hydrationStreakDays > 0 && <> · {weeklyRecap.hydrationStreakDays}j d'hydratation d'affilée</>}
+          </p>
         </Card>
       )}
 
@@ -207,6 +279,22 @@ export function Dashboard() {
           <p className="text-sm text-slate-400">
             Renseigne ta taille et ton poids dans <Link to="/settings" className="text-sky-400 underline">Réglages</Link> pour calculer tes objectifs caloriques.
           </p>
+        </Card>
+      )}
+
+      {showCalorieSuggestion && calorieSuggestion && (
+        <Card className="border border-sky-500/40 bg-sky-500/5">
+          <p className="text-sm text-sky-300 font-medium">🎯 Ajustement calorique suggéré</p>
+          <p className="text-xs text-slate-400 mt-1">{calorieSuggestion.note}</p>
+          <div className="flex gap-2 mt-3">
+            <Button className="flex-1 py-2 text-sm" onClick={() => handleApplyAdjustment(calorieSuggestion.deltaKcal)}>
+              Appliquer ({calorieSuggestion.deltaKcal > 0 ? '+' : ''}
+              {calorieSuggestion.deltaKcal} kcal)
+            </Button>
+            <Button variant="secondary" className="flex-1 py-2 text-sm" onClick={handleDismissAdjustment}>
+              Ignorer
+            </Button>
+          </div>
         </Card>
       )}
 

@@ -1,5 +1,6 @@
 import { supabase } from './supabase'
 import type {
+  BodyMeasurement,
   Exercise,
   HydrationLog,
   Message,
@@ -578,4 +579,82 @@ export async function getTotalPrCount(profileId: string): Promise<number> {
     .eq('workout_sessions.profile_id', profileId)
   if (error) throw error
   return count ?? 0
+}
+
+// ---------------------------------------------------------------------------
+// Bilan hebdomadaire
+// ---------------------------------------------------------------------------
+export async function getWeekTonnageKg(profileId: string, weekStartIso: string): Promise<number> {
+  const { data, error } = await supabase
+    .from('session_sets')
+    .select('weight_kg, reps, workout_sessions!inner(profile_id, session_date)')
+    .eq('workout_sessions.profile_id', profileId)
+    .gte('workout_sessions.session_date', weekStartIso)
+  if (error) throw error
+  const rows = data as unknown as { weight_kg: number | null; reps: number | null }[]
+  return rows.reduce((sum, r) => sum + (r.weight_kg ?? 0) * (r.reps ?? 0), 0)
+}
+
+export async function getWeekPrCount(profileId: string, weekStartIso: string): Promise<number> {
+  const { count, error } = await supabase
+    .from('session_sets')
+    .select('id, workout_sessions!inner(profile_id, session_date)', { count: 'exact', head: true })
+    .eq('is_pr', true)
+    .eq('workout_sessions.profile_id', profileId)
+    .gte('workout_sessions.session_date', weekStartIso)
+  if (error) throw error
+  return count ?? 0
+}
+
+// ---------------------------------------------------------------------------
+// Mensurations + photos de progression
+// ---------------------------------------------------------------------------
+export async function listBodyMeasurements(profileId: string, limit = 60): Promise<BodyMeasurement[]> {
+  const { data, error } = await supabase
+    .from('body_measurements')
+    .select('*')
+    .eq('profile_id', profileId)
+    .order('logged_date', { ascending: true })
+    .limit(limit)
+  if (error) throw error
+  return data as BodyMeasurement[]
+}
+
+export async function upsertBodyMeasurement(
+  profileId: string,
+  values: { waistCm?: number | null; chestCm?: number | null; armCm?: number | null; thighCm?: number | null; photoPath?: string | null },
+  date = todayIso(),
+): Promise<BodyMeasurement> {
+  const { data, error } = await supabase
+    .from('body_measurements')
+    .upsert(
+      {
+        profile_id: profileId,
+        logged_date: date,
+        waist_cm: values.waistCm,
+        chest_cm: values.chestCm,
+        arm_cm: values.armCm,
+        thigh_cm: values.thighCm,
+        ...(values.photoPath !== undefined ? { photo_path: values.photoPath } : {}),
+      },
+      { onConflict: 'profile_id,logged_date' },
+    )
+    .select('*')
+    .single()
+  if (error) throw error
+  return data as BodyMeasurement
+}
+
+export async function uploadProgressPhoto(profileId: string, file: File, date = todayIso()): Promise<string> {
+  const ext = file.name.split('.').pop() ?? 'jpg'
+  const path = `${profileId}/${date}.${ext}`
+  const { error } = await supabase.storage.from('progress-photos').upload(path, file, { upsert: true })
+  if (error) throw error
+  return path
+}
+
+export async function getProgressPhotoUrl(path: string): Promise<string | null> {
+  const { data, error } = await supabase.storage.from('progress-photos').createSignedUrl(path, 3600)
+  if (error) throw error
+  return data?.signedUrl ?? null
 }

@@ -31,11 +31,15 @@ create table if not exists profiles (
   onboarded boolean not null default false,
   takes_protein_shake boolean not null default false,
   has_physical_job boolean not null default false,
+  calorie_adjustment_kcal numeric not null default 0,
+  calorie_adjustment_updated_at timestamptz,
   created_at timestamptz not null default now()
 );
 
 alter table profiles add column if not exists takes_protein_shake boolean not null default false;
 alter table profiles add column if not exists has_physical_job boolean not null default false;
+alter table profiles add column if not exists calorie_adjustment_kcal numeric not null default 0;
+alter table profiles add column if not exists calorie_adjustment_updated_at timestamptz;
 
 -- Cree automatiquement un profil vide a l'inscription
 create or replace function handle_new_user()
@@ -75,6 +79,23 @@ create table if not exists weight_logs (
   profile_id uuid not null references profiles(id) on delete cascade,
   logged_date date not null default current_date,
   weight_kg numeric not null,
+  notes text,
+  created_at timestamptz not null default now(),
+  unique (profile_id, logged_date)
+);
+
+-- ---------------------------------------------------------------------------
+-- Mensurations + photo de progression (une entree par jour, comme le poids)
+-- ---------------------------------------------------------------------------
+create table if not exists body_measurements (
+  id uuid primary key default gen_random_uuid(),
+  profile_id uuid not null references profiles(id) on delete cascade,
+  logged_date date not null default current_date,
+  waist_cm numeric,
+  chest_cm numeric,
+  arm_cm numeric,
+  thigh_cm numeric,
+  photo_path text,
   notes text,
   created_at timestamptz not null default now(),
   unique (profile_id, logged_date)
@@ -166,6 +187,7 @@ create table if not exists hydration_logs (
 alter table couples enable row level security;
 alter table profiles enable row level security;
 alter table weight_logs enable row level security;
+alter table body_measurements enable row level security;
 alter table exercises enable row level security;
 alter table programs enable row level security;
 alter table program_days enable row level security;
@@ -187,6 +209,10 @@ create policy "profiles_insert" on profiles for insert with check (id = auth.uid
 -- weight_logs
 create policy "weight_logs_select" on weight_logs for select using (is_own_or_partner(profile_id));
 create policy "weight_logs_write" on weight_logs for all using (profile_id = auth.uid()) with check (profile_id = auth.uid());
+
+-- body_measurements
+create policy "body_measurements_select" on body_measurements for select using (is_own_or_partner(profile_id));
+create policy "body_measurements_write" on body_measurements for all using (profile_id = auth.uid()) with check (profile_id = auth.uid());
 
 -- exercises (bibliotheque partagee en lecture)
 create policy "exercises_select" on exercises for select using (true);
@@ -334,3 +360,20 @@ create policy "messages_update" on messages for update using (to_profile_id = au
 
 -- Active le temps réel pour que la cloche se mette à jour sans recharger la page
 alter publication supabase_realtime add table messages;
+
+-- ---------------------------------------------------------------------------
+-- Stockage des photos de progression (bucket prive, un dossier par profil)
+-- ---------------------------------------------------------------------------
+insert into storage.buckets (id, name, public)
+values ('progress-photos', 'progress-photos', false)
+on conflict (id) do nothing;
+
+create policy "progress_photos_select" on storage.objects for select using (
+  bucket_id = 'progress-photos' and is_own_or_partner((storage.foldername(name))[1]::uuid)
+);
+create policy "progress_photos_insert" on storage.objects for insert with check (
+  bucket_id = 'progress-photos' and (storage.foldername(name))[1]::uuid = auth.uid()
+);
+create policy "progress_photos_delete" on storage.objects for delete using (
+  bucket_id = 'progress-photos' and (storage.foldername(name))[1]::uuid = auth.uid()
+);
