@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { getErrorMessage } from '../lib/errors'
 import { Button, Input, Label } from '../components/ui'
 
 export function Login() {
@@ -30,7 +31,7 @@ export function Login() {
         if (error) throw error
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Une erreur est survenue')
+      setError(getErrorMessage(err))
     } finally {
       setLoading(false)
     }
