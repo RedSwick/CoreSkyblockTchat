@@ -14,7 +14,7 @@ import {
 } from '../lib/api'
 import { computeExerciseRank, getExerciseMetric, hasRankConfig, type RankResult } from '../lib/ranks'
 import { EXERCISE_INFO } from '../lib/exerciseInfo'
-import { Pictogram } from '../components/pictograms'
+import { MuscleIcon } from '../components/MuscleMap'
 import { RankBadge } from '../components/RankBadge'
 import { Button, Card, Spinner } from '../components/ui'
 import type { Exercise, Profile } from '../types'
@@ -134,8 +134,8 @@ export function ExerciseDetail() {
 
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-slate-800 text-sky-400">
-            {info && <Pictogram pattern={info.pattern} size={36} />}
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-slate-800">
+            <MuscleIcon muscleGroup={exercise.muscle_group} size={44} />
           </div>
           <div>
             <h1 className="text-lg font-semibold text-slate-50">{exercise.name}</h1>
