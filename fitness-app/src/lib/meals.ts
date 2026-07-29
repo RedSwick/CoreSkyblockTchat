@@ -236,6 +236,138 @@ export const MEALS: Meal[] = [
     carbs_g: 70,
     fat_g: 22,
   },
+  {
+    id: 'ld_pates_poulet_creme',
+    name: 'Pâtes au poulet et crème légère',
+    mealType: 'lunch_dinner',
+    ingredients: ['100g pâtes', '150g blanc de poulet', '10cl crème légère', 'champignons (frais ou en boîte)'],
+    instructions: 'Poêle le poulet en dés, ajoute les champignons, déglace à la crème légère, sers sur les pâtes cuites.',
+    costTier: 1,
+    calories: 700,
+    protein_g: 48,
+    carbs_g: 75,
+    fat_g: 20,
+  },
+  {
+    id: 'ld_pates_poulet_curry',
+    name: 'Poulet au curry et pâtes',
+    mealType: 'lunch_dinner',
+    ingredients: ['150g blanc de poulet', '100g pâtes', 'curry en poudre', 'lait de coco léger'],
+    instructions: 'Poêle le poulet, saupoudre de curry, ajoute un peu de lait de coco, laisse mijoter, sers sur les pâtes.',
+    costTier: 1,
+    calories: 680,
+    protein_g: 45,
+    carbs_g: 75,
+    fat_g: 18,
+  },
+  {
+    id: 'ld_pates_pesto_poulet',
+    name: 'Pâtes au pesto et poulet grillé',
+    mealType: 'lunch_dinner',
+    ingredients: ['100g pâtes', '150g blanc de poulet', '2 cuillères de pesto', 'tomates cerises'],
+    instructions: 'Grille le poulet à la poêle, mélange les pâtes cuites avec le pesto, ajoute le poulet coupé et les tomates.',
+    costTier: 1,
+    calories: 680,
+    protein_g: 45,
+    carbs_g: 75,
+    fat_g: 22,
+  },
+  {
+    id: 'ld_poulet_fajitas',
+    name: 'Poulet fajitas',
+    mealType: 'lunch_dinner',
+    ingredients: ['2 tortillas', '150g blanc de poulet', 'poivrons', 'oignon', 'épices fajitas'],
+    instructions: 'Fais sauter le poulet en lanières avec poivrons, oignon et épices, garnis les tortillas.',
+    costTier: 1,
+    calories: 600,
+    protein_g: 42,
+    carbs_g: 60,
+    fat_g: 16,
+  },
+  {
+    id: 'ld_poulet_soja_riz',
+    name: 'Poulet mariné soja-miel, riz et brocolis',
+    mealType: 'lunch_dinner',
+    ingredients: ['150g blanc de poulet', 'sauce soja', 'un peu de miel', '150g riz cru', 'brocolis surgelés'],
+    instructions: "Fais mariner le poulet dans soja+miel quelques minutes, poêle-le, cuis le riz et les brocolis à côté.",
+    costTier: 1,
+    calories: 620,
+    protein_g: 45,
+    carbs_g: 75,
+    fat_g: 10,
+  },
+  {
+    id: 'ld_pates_carbo_legere',
+    name: 'Pâtes à la carbonara légère (poulet ou lardons)',
+    mealType: 'lunch_dinner',
+    ingredients: ['100g pâtes', '150g blanc de poulet ou lardons', '1 œuf', '30g parmesan'],
+    instructions: 'Poêle le poulet ou les lardons, mélange hors du feu avec les pâtes chaudes, œuf battu et parmesan.',
+    costTier: 1,
+    calories: 700,
+    protein_g: 48,
+    carbs_g: 70,
+    fat_g: 22,
+  },
+  {
+    id: 'ld_poulet_basquaise',
+    name: 'Poulet basquaise et riz',
+    mealType: 'lunch_dinner',
+    ingredients: ['150g blanc de poulet', 'poivrons', 'tomates concassées', '150g riz cru'],
+    instructions: 'Fais revenir le poulet et les poivrons, ajoute les tomates, laisse mijoter 15 min, sers avec le riz.',
+    costTier: 1,
+    calories: 620,
+    protein_g: 45,
+    carbs_g: 75,
+    fat_g: 10,
+  },
+  {
+    id: 'ld_pates_thon_tomate',
+    name: 'Pâtes au thon et tomates cerises',
+    mealType: 'lunch_dinner',
+    ingredients: ['100g pâtes', '2 boîtes de thon au naturel', 'tomates cerises', 'ail', "filet d'huile d'olive"],
+    instructions: "Fais revenir l'ail avec les tomates cerises, ajoute le thon égoutté, mélange avec les pâtes cuites.",
+    costTier: 1,
+    calories: 620,
+    protein_g: 42,
+    carbs_g: 75,
+    fat_g: 12,
+  },
+  {
+    id: 'ld_poulet_roti_legumes',
+    name: 'Poulet rôti, pâtes et légumes rôtis',
+    mealType: 'lunch_dinner',
+    ingredients: ['150g blanc de poulet', '100g pâtes', 'légumes (courgette, poivron) au four'],
+    instructions: 'Fais rôtir le poulet et les légumes au four, sers avec les pâtes cuites et un filet d\'huile d\'olive.',
+    costTier: 1,
+    calories: 650,
+    protein_g: 45,
+    carbs_g: 70,
+    fat_g: 15,
+  },
+  {
+    id: 'ld_pates_bolo_dinde',
+    name: 'Pâtes à la bolognaise de dinde (version light)',
+    mealType: 'lunch_dinner',
+    ingredients: ['100g pâtes', '150g dinde hachée', 'sauce tomate', 'oignon'],
+    instructions: "Fais revenir l'oignon et la dinde hachée, ajoute la sauce tomate, laisse mijoter, sers sur les pâtes.",
+    costTier: 1,
+    calories: 620,
+    protein_g: 45,
+    carbs_g: 75,
+    fat_g: 10,
+  },
+  {
+    id: 'ld_poulet_tikka_riz',
+    name: 'Poulet tikka masala simplifié et riz',
+    mealType: 'lunch_dinner',
+    ingredients: ['150g blanc de poulet', 'sauce tomate', 'yaourt nature', 'épices tikka/garam masala', '150g riz cru'],
+    instructions: 'Poêle le poulet avec les épices, ajoute la sauce tomate et une cuillère de yaourt, laisse mijoter, sers avec le riz.',
+    costTier: 1,
+    calories: 640,
+    protein_g: 45,
+    carbs_g: 75,
+    fat_g: 12,
+  },
 
   // --- Collations ---
   {
@@ -312,8 +444,22 @@ export const MEALS: Meal[] = [
   },
 ]
 
+/** Item fixe (pas de rotation) affiché quand le profil a activé "shake de protéine tous les jours". */
+export const PROTEIN_SHAKE_MEAL: Meal = {
+  id: 'supplement_shake',
+  name: 'Shake protéiné',
+  mealType: 'snack',
+  ingredients: ['1 dose de whey (~30g)', '250-300ml eau ou lait', '3-5g de créatine (sans goût, tu peux la mettre dedans)'],
+  instructions: "Au shaker, quand tu veux dans la journée (typiquement après la séance). Les BCAA se prennent plutôt pendant l'entraînement.",
+  costTier: 2,
+  calories: 130,
+  protein_g: 24,
+  carbs_g: 4,
+  fat_g: 2,
+}
+
 export interface SuggestedMeal {
-  slot: 'breakfast' | 'lunch' | 'dinner' | 'snack'
+  slot: 'breakfast' | 'lunch' | 'dinner' | 'snack' | 'shake'
   slotLabel: string
   meal: Meal
 }
@@ -335,28 +481,41 @@ function pickClosest(candidates: Meal[], targetCalories: number, seed: number, e
   return shortlist[((seed % shortlist.length) + shortlist.length) % shortlist.length]
 }
 
-/** Propose 4 repas économiques dont la somme colle approximativement aux objectifs du jour. */
-export function suggestDailyMeals(targets: NutritionTarget, goal: Goal, seed = 0): SuggestedMeal[] {
+/**
+ * Propose des repas économiques dont la somme colle approximativement aux
+ * objectifs du jour. Si `hasProteinShake` est vrai, le shake est ajouté en
+ * item fixe (pas de rotation) et ses macros sont déduites des objectifs
+ * avant de répartir le reste sur les 4 repas, pour ne pas compter deux fois
+ * les mêmes calories/protéines.
+ */
+export function suggestDailyMeals(targets: NutritionTarget, goal: Goal, seed = 0, hasProteinShake = false): SuggestedMeal[] {
   const fractions = FRACTIONS[goal]
   const mains = MEALS.filter((m) => m.mealType === 'lunch_dinner')
+  const remainingCalories = hasProteinShake ? Math.max(0, targets.calories - PROTEIN_SHAKE_MEAL.calories) : targets.calories
 
   const breakfast = pickClosest(
     MEALS.filter((m) => m.mealType === 'breakfast'),
-    targets.calories * fractions.breakfast,
+    remainingCalories * fractions.breakfast,
     seed,
   )
-  const lunch = pickClosest(mains, targets.calories * fractions.lunch, seed)
-  const dinner = pickClosest(mains, targets.calories * fractions.dinner, seed + 1, [lunch.id])
+  const lunch = pickClosest(mains, remainingCalories * fractions.lunch, seed)
+  const dinner = pickClosest(mains, remainingCalories * fractions.dinner, seed + 1, [lunch.id])
   const snack = pickClosest(
     MEALS.filter((m) => m.mealType === 'snack'),
-    targets.calories * fractions.snack,
+    remainingCalories * fractions.snack,
     seed,
   )
 
-  return [
+  const result: SuggestedMeal[] = [
     { slot: 'breakfast', slotLabel: 'Petit-déjeuner', meal: breakfast },
     { slot: 'lunch', slotLabel: 'Déjeuner', meal: lunch },
     { slot: 'dinner', slotLabel: 'Dîner', meal: dinner },
     { slot: 'snack', slotLabel: 'Collation', meal: snack },
   ]
+
+  if (hasProteinShake) {
+    result.push({ slot: 'shake', slotLabel: 'Shake protéiné (fixe)', meal: PROTEIN_SHAKE_MEAL })
+  }
+
+  return result
 }

@@ -15,6 +15,7 @@ export interface Profile {
   training_days_per_week: number
   couple_id: string | null
   onboarded: boolean
+  takes_protein_shake: boolean
   created_at: string
 }
 

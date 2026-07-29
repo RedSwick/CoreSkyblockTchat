@@ -13,6 +13,7 @@ export function Settings() {
   const [activity, setActivity] = useState<ActivityLevel>(profile?.activity_level ?? 'moderate')
   const [goal, setGoal] = useState<Goal>(profile?.goal ?? 'gain_muscle')
   const [trainingDays, setTrainingDays] = useState(profile?.training_days_per_week ?? 4)
+  const [takesProteinShake, setTakesProteinShake] = useState(profile?.takes_protein_shake ?? false)
   const [saved, setSaved] = useState(false)
 
   if (!profile || !user) return null
@@ -26,6 +27,7 @@ export function Settings() {
       activity_level: activity,
       goal,
       training_days_per_week: trainingDays,
+      takes_protein_shake: takesProteinShake,
     })
     await refreshProfile()
     setSaved(true)
@@ -81,6 +83,15 @@ export function Settings() {
           <Label>Séances / semaine visées</Label>
           <Input type="number" min={1} max={7} value={trainingDays} onChange={(e) => setTrainingDays(Number(e.target.value))} />
         </div>
+        <label className="flex items-center justify-between gap-3 rounded-xl bg-slate-800/60 px-3 py-2.5">
+          <span className="text-sm text-slate-200">Je prends un shake de protéine tous les jours</span>
+          <input
+            type="checkbox"
+            checked={takesProteinShake}
+            onChange={(e) => setTakesProteinShake(e.target.checked)}
+            className="h-5 w-5 accent-sky-500"
+          />
+        </label>
         <Button className="w-full" onClick={handleSave}>
           {saved ? 'Enregistré ✓' : 'Enregistrer'}
         </Button>

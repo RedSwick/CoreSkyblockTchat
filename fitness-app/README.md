@@ -53,7 +53,7 @@ Le plus simple : [Vercel](https://vercel.com) ou [Netlify](https://netlify.com),
 - **Calories/macros du jour** (`src/lib/nutrition.ts`) : formule Mifflin-St Jeor + facteur d'activité, puis surplus modéré (+12%, protéines hautes) pour la prise de masse la plus sèche possible, ou déficit modéré (-15%) pour la perte de gras en préservant le muscle. Recalculé automatiquement à chaque nouvelle pesée.
 - **Objectif d'hydratation** (`computeHydrationTargetMl`) : ~35ml/kg de poids de corps, +500ml les jours d'entraînement.
 - **Suggestion de charge** : au moment de logger une série, l'app affiche ta meilleure perf précédente sur cet exercice pour viser la surcharge progressive, et marque automatiquement un 🏆 PR si tu la dépasses.
-- **Repas suggérés du jour** (`src/lib/meals.ts`) : petit-déj/déjeuner/dîner/collation choisis parmi ~24 recettes économiques (courses type Lidl/Aldi) pour coller approximativement aux calories/macros du jour, en priorisant les moins chères. Bouton "🔄 changer" pour piocher une autre suggestion proche des mêmes macros.
+- **Repas suggérés du jour** (`src/lib/meals.ts`) : petit-déj/déjeuner/dîner/collation choisis parmi ~35 recettes économiques (courses type Lidl/Aldi, avec pas mal de variantes pâtes/poulet) pour coller approximativement aux calories/macros du jour, en priorisant les moins chères. Bouton "🔄 changer" pour piocher une autre suggestion proche des mêmes macros. Si tu actives "Je prends un shake de protéine tous les jours" dans Réglages, un 5ᵉ item fixe (shake + rappel créatine) s'ajoute et ses macros sont déduites des objectifs des autres repas pour ne pas compter en double.
 
 ## Coach du jour
 
