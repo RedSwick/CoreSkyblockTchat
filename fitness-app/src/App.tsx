@@ -141,7 +141,17 @@ function AppRoutes() {
     <Routes>
       <Route
         path="/login"
-        element={session && profile?.onboarded ? <Navigate to="/" replace /> : loading ? <Spinner /> : <Login />}
+        element={
+          !session ? (
+            loading ? <Spinner /> : <Login />
+          ) : loading ? (
+            <Spinner />
+          ) : profile?.onboarded ? (
+            <Navigate to="/" replace />
+          ) : (
+            <Navigate to="/onboarding" replace />
+          )
+        }
       />
       <Route
         path="/onboarding"
