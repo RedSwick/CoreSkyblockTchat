@@ -13,6 +13,7 @@ import {
 } from '../lib/api'
 import { computeHydrationTargetMl, computeNutritionTargets, getAge } from '../lib/nutrition'
 import { suggestDailyMeals } from '../lib/meals'
+import { getConstanceData, type ConstanceData } from '../lib/constance'
 import { Button, Card, EmptyState, PageTitle, ProgressRing, Spinner, StatPill } from '../components/ui'
 import type { Location, Profile, Program, ProgramDay, ProgramExercise, Exercise } from '../types'
 
@@ -42,23 +43,26 @@ export function Dashboard() {
   const [starting, setStarting] = useState(false)
 
   const [mealSeed, setMealSeed] = useState(0)
+  const [constance, setConstance] = useState<ConstanceData | null>(null)
 
   useEffect(() => {
     if (!profile) return
     let cancelled = false
     async function load() {
-      const [w, hydration, weekly, partnerProfile, programs] = await Promise.all([
+      const [w, hydration, weekly, partnerProfile, programs, constanceData] = await Promise.all([
         getLatestWeight(profile!.id),
         getTodayHydrationTotal(profile!.id),
         getWeeklySessionCount(profile!.id),
         getPartnerProfile(profile!),
         listPrograms(profile!.id),
+        getConstanceData(profile!),
       ])
       if (cancelled) return
       setWeightKg(w?.weight_kg ?? null)
       setHydrationMl(hydration)
       setMyWeeklyCount(weekly)
       setPartner(partnerProfile)
+      setConstance(constanceData)
       const byLocation: Record<Location, Program[]> = {
         gym: programs.filter((p) => p.location === 'gym'),
         home: programs.filter((p) => p.location === 'home'),
@@ -147,6 +151,28 @@ export function Dashboard() {
         <StatPill label="Objectif" value={profile.target_weight_kg ? `${profile.target_weight_kg} kg` : '—'} accent="emerald" />
         <StatPill label="Séances 7j" value={`${myWeeklyCount}/${profile.training_days_per_week}`} accent="amber" />
       </div>
+
+      {constance && (constance.weekly.currentStreakWeeks > 0 || constance.daily.currentStreakDays > 0) && (
+        <Card className="flex gap-3">
+          <div className="flex-1 flex items-center gap-2.5">
+            <span className="text-2xl">🔥</span>
+            <div>
+              <p className="text-lg font-bold text-amber-400 leading-tight">
+                {constance.weekly.currentStreakWeeks} sem.
+              </p>
+              <p className="text-[11px] text-slate-400">de constance</p>
+            </div>
+          </div>
+          <div className="w-px bg-slate-800" />
+          <div className="flex-1 flex items-center gap-2.5">
+            <span className="text-2xl">💧</span>
+            <div>
+              <p className="text-lg font-bold text-sky-400 leading-tight">{constance.daily.currentStreakDays} j.</p>
+              <p className="text-[11px] text-slate-400">bien hydraté(e)</p>
+            </div>
+          </div>
+        </Card>
+      )}
 
       {nutrition ? (
         <Card>

@@ -14,6 +14,7 @@ import {
   sendMessage,
 } from '../lib/api'
 import { computeHydrationTargetMl } from '../lib/nutrition'
+import { getConstanceData, type ConstanceData } from '../lib/constance'
 import { Button, Card, EmptyState, Input, PageTitle, Spinner } from '../components/ui'
 import { MuscleIcon } from '../components/MuscleMap'
 import type { Exercise, Profile, SessionSet, WeightLog, WorkoutSession } from '../types'
@@ -33,6 +34,8 @@ export function Couple() {
   const [partnerHydration, setPartnerHydration] = useState(0)
   const [partnerPrs, setPartnerPrs] = useState<(SessionSet & { exercise: Exercise; session_date: string })[]>([])
   const [myWeekly, setMyWeekly] = useState(0)
+  const [myConstance, setMyConstance] = useState<ConstanceData | null>(null)
+  const [partnerConstance, setPartnerConstance] = useState<ConstanceData | null>(null)
   const [nudgeSent, setNudgeSent] = useState(false)
   const [cheeredIds, setCheeredIds] = useState<string[]>([])
 
@@ -45,21 +48,24 @@ export function Couple() {
     setLoading(true)
     const p = await getPartnerProfile(profile)
     setPartner(p)
-    const mine = await getWeeklySessionCount(profile.id)
+    const [mine, mineConstance] = await Promise.all([getWeeklySessionCount(profile.id), getConstanceData(profile)])
     setMyWeekly(mine)
+    setMyConstance(mineConstance)
     if (p) {
-      const [weekly, sessions, weights, hydration, prs] = await Promise.all([
+      const [weekly, sessions, weights, hydration, prs, pConstance] = await Promise.all([
         getWeeklySessionCount(p.id),
         listSessions(p.id, 10),
         listWeightLogs(p.id),
         getTodayHydrationTotal(p.id),
         getRecentPrs(p.id, 5),
+        getConstanceData(p),
       ])
       setPartnerWeekly(weekly)
       setPartnerSessions(sessions)
       setPartnerWeights(weights)
       setPartnerHydration(hydration)
       setPartnerPrs(prs)
+      setPartnerConstance(pConstance)
     }
     setLoading(false)
   }
@@ -175,6 +181,24 @@ export function Couple() {
           <div className="text-[11px] text-slate-400 mt-0.5">{partner.display_name} cette semaine</div>
         </Card>
       </div>
+
+      {(myConstance || partnerConstance) && (
+        <Card>
+          <h2 className="text-sm font-medium text-slate-300 mb-3">Constance 🔥</h2>
+          <div className="grid grid-cols-2 gap-3 text-center">
+            <div>
+              <p className="text-xs text-slate-500 mb-1">Toi</p>
+              <p className="text-base font-bold text-amber-400">{myConstance?.weekly.currentStreakWeeks ?? 0} sem.</p>
+              <p className="text-[11px] text-slate-500">{myConstance?.daily.currentStreakDays ?? 0} j. hydratation</p>
+            </div>
+            <div>
+              <p className="text-xs text-slate-500 mb-1">{partner.display_name}</p>
+              <p className="text-base font-bold text-fuchsia-400">{partnerConstance?.weekly.currentStreakWeeks ?? 0} sem.</p>
+              <p className="text-[11px] text-slate-500">{partnerConstance?.daily.currentStreakDays ?? 0} j. hydratation</p>
+            </div>
+          </div>
+        </Card>
+      )}
 
       <Card>
         <h2 className="text-sm font-medium text-slate-300 mb-2">Évolution du poids</h2>

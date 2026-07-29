@@ -529,3 +529,53 @@ export function subscribeToIncomingMessages(profileId: string, onMessage: (msg: 
     supabase.removeChannel(channel)
   }
 }
+
+// ---------------------------------------------------------------------------
+// Streaks & badges
+// ---------------------------------------------------------------------------
+export async function getSessionDatesSince(profileId: string, sinceDays: number): Promise<string[]> {
+  const since = new Date()
+  since.setDate(since.getDate() - sinceDays)
+  const { data, error } = await supabase
+    .from('workout_sessions')
+    .select('session_date')
+    .eq('profile_id', profileId)
+    .gte('session_date', since.toISOString().slice(0, 10))
+  if (error) throw error
+  return (data as { session_date: string }[]).map((r) => r.session_date)
+}
+
+export async function getHydrationTotalsSince(profileId: string, sinceDays: number): Promise<Record<string, number>> {
+  const since = new Date()
+  since.setDate(since.getDate() - sinceDays)
+  const { data, error } = await supabase
+    .from('hydration_logs')
+    .select('logged_date, amount_ml')
+    .eq('profile_id', profileId)
+    .gte('logged_date', since.toISOString().slice(0, 10))
+  if (error) throw error
+  const totals: Record<string, number> = {}
+  for (const row of data as { logged_date: string; amount_ml: number }[]) {
+    totals[row.logged_date] = (totals[row.logged_date] ?? 0) + row.amount_ml
+  }
+  return totals
+}
+
+export async function getTotalSessionCount(profileId: string): Promise<number> {
+  const { count, error } = await supabase
+    .from('workout_sessions')
+    .select('id', { count: 'exact', head: true })
+    .eq('profile_id', profileId)
+  if (error) throw error
+  return count ?? 0
+}
+
+export async function getTotalPrCount(profileId: string): Promise<number> {
+  const { count, error } = await supabase
+    .from('session_sets')
+    .select('id, workout_sessions!inner(profile_id)', { count: 'exact', head: true })
+    .eq('is_pr', true)
+    .eq('workout_sessions.profile_id', profileId)
+  if (error) throw error
+  return count ?? 0
+}

@@ -69,6 +69,10 @@ Chaque exercice avec une charge/reps mesurable (`src/lib/ranks.ts`) a un systèm
 
 Clique sur un exercice (dans une séance, la page Rangs ou Progrès) pour ouvrir sa fiche détaillée : pictogramme, à quoi ça sert, comment le faire étape par étape, respiration/contraction, erreurs fréquentes, historique, et un formulaire pour mettre à jour ton record directement (pas besoin d'être en séance). Les seuils sont ajustables dans `RANK_CONFIG` (`src/lib/ranks.ts`), le contenu pédagogique dans `EXERCISE_INFO` (`src/lib/exerciseInfo.ts`).
 
+## Streaks & badges de constance
+
+Sur le Dashboard, une carte 🔥/💧 affiche ta série en cours : nombre de semaines d'affilée où tu as atteint ton objectif de séances, et nombre de jours d'affilée où tu as atteint ton objectif d'hydratation (`src/lib/streaks.ts`). L'onglet **Couple** affiche les deux séries côte à côte (toi et ton/ta partenaire). L'onglet **Rangs** ajoute une grille de badges de paliers (10/25/50/100 séances, 5/25/50 records, 7/30/60 jours d'hydratation d'affilée, 1/3/6 mois de constance — `src/lib/badges.ts`), grisés tant qu'ils ne sont pas débloqués.
+
 ## Messages entre vous
 
 Icône 💬 en haut de l'app, avec une pastille du nombre de messages non lus (mise à jour en direct via Supabase Realtime, pas besoin de rafraîchir). Quand l'un de vous bat un record, l'autre reçoit automatiquement une notif ("🏆 ... nouveau record à Hip thrust : 95kg !") et peut répondre avec des suggestions rapides ("Bravo mon cœur !"). Dans l'onglet **Couple**, si ton/ta partenaire n'a pas assez bu par rapport à l'heure de la journée, un bouton apparaît pour lui envoyer un petit rappel.

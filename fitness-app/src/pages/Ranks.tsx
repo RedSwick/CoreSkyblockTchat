@@ -14,6 +14,8 @@ import {
 import { Card, PageTitle, Spinner } from '../components/ui'
 import { RankBadge } from '../components/RankBadge'
 import { MuscleIcon } from '../components/MuscleMap'
+import { getConstanceData } from '../lib/constance'
+import { computeUnlockedBadges, type UserStats } from '../lib/badges'
 import type { Exercise } from '../types'
 
 export function Ranks() {
@@ -22,15 +24,21 @@ export function Ranks() {
   const [loading, setLoading] = useState(true)
   const [exercises, setExercises] = useState<Exercise[]>([])
   const [bestValues, setBestValues] = useState<Record<string, BestPerformance>>({})
+  const [stats, setStats] = useState<UserStats | null>(null)
 
   useEffect(() => {
     if (!profile) return
     let cancelled = false
     async function load() {
-      const [ex, best] = await Promise.all([listExercises(), getAllBestPerformances(profile!.id)])
+      const [ex, best, constance] = await Promise.all([
+        listExercises(),
+        getAllBestPerformances(profile!.id),
+        getConstanceData(profile!),
+      ])
       if (cancelled) return
       setExercises(ex)
       setBestValues(best)
+      setStats(constance.stats)
       setLoading(false)
     }
     load()
@@ -104,6 +112,28 @@ export function Ranks() {
           <p className="text-sm text-slate-400">
             Enregistre au moins une série sur un exercice pour débloquer tes premiers rangs.
           </p>
+        </Card>
+      )}
+
+      {stats && (
+        <Card>
+          <h2 className="font-medium text-slate-100 mb-3">Badges</h2>
+          <div className="grid grid-cols-4 gap-2">
+            {computeUnlockedBadges(stats).map(({ badge, unlocked }) => (
+              <div
+                key={badge.id}
+                title={badge.description}
+                className={`flex flex-col items-center gap-1 rounded-xl px-1.5 py-2.5 text-center ${
+                  unlocked ? 'bg-amber-500/10 border border-amber-500/30' : 'bg-slate-800/40 border border-slate-800'
+                }`}
+              >
+                <span className={`text-xl ${unlocked ? '' : 'grayscale opacity-30'}`}>{badge.icon}</span>
+                <span className={`text-[10px] leading-tight ${unlocked ? 'text-amber-300' : 'text-slate-600'}`}>
+                  {badge.label}
+                </span>
+              </div>
+            ))}
+          </div>
         </Card>
       )}
 
