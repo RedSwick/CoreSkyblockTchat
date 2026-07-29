@@ -16,6 +16,7 @@ import {
 } from '../lib/api'
 import { computeExerciseRank, hasRankConfig } from '../lib/ranks'
 import { RankBadge } from '../components/RankBadge'
+import { MuscleIcon } from '../components/MuscleMap'
 import { Button, Card, PageTitle, Spinner } from '../components/ui'
 import type { Exercise, Profile, ProgramExercise, SessionSet, WorkoutSession } from '../types'
 
@@ -171,9 +172,14 @@ export function SessionLogger() {
             <div className="flex items-center justify-between mb-1 gap-2">
               <button
                 onClick={() => navigate(`/exercise/${pe.exercise_id}`)}
-                className="font-medium text-slate-100 text-left underline decoration-slate-700 underline-offset-2"
+                className="flex items-center gap-2 text-left min-w-0"
               >
-                {pe.exercise.name}
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-800">
+                  <MuscleIcon muscleGroup={pe.exercise.muscle_group} size={30} />
+                </span>
+                <span className="font-medium text-slate-100 underline decoration-slate-700 underline-offset-2 truncate">
+                  {pe.exercise.name}
+                </span>
               </button>
               <div className="flex items-center gap-2 shrink-0">
                 <RankBadge rank={rank} size="sm" />

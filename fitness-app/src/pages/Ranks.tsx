@@ -13,6 +13,7 @@ import {
 } from '../lib/ranks'
 import { Card, PageTitle, Spinner } from '../components/ui'
 import { RankBadge } from '../components/RankBadge'
+import { MuscleIcon } from '../components/MuscleMap'
 import type { Exercise } from '../types'
 
 export function Ranks() {
@@ -111,7 +112,12 @@ export function Ranks() {
         return (
           <Card key={group}>
             <div className="flex items-center justify-between mb-3">
-              <h2 className="font-medium text-slate-100">{group}</h2>
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-800">
+                  <MuscleIcon muscleGroup={group} size={30} />
+                </div>
+                <h2 className="font-medium text-slate-100">{group}</h2>
+              </div>
               {groupRank ? (
                 <span className="text-sm font-medium" style={{ color: groupRank.color }}>
                   {groupRank.icon} {groupRank.tierName}

@@ -15,6 +15,7 @@ import {
 } from '../lib/api'
 import { computeHydrationTargetMl } from '../lib/nutrition'
 import { Button, Card, EmptyState, Input, PageTitle, Spinner } from '../components/ui'
+import { MuscleIcon } from '../components/MuscleMap'
 import type { Exercise, Profile, SessionSet, WeightLog, WorkoutSession } from '../types'
 
 function formatDate(iso: string) {
@@ -218,10 +219,15 @@ export function Couple() {
               <div key={pr.id} className="flex items-center justify-between gap-2">
                 <button
                   onClick={() => navigate(`/exercise/${pr.exercise_id}`)}
-                  className="text-sm text-slate-200 text-left underline decoration-slate-700 underline-offset-2"
+                  className="flex items-center gap-2 text-left min-w-0"
                 >
-                  {pr.exercise.name} — {pr.weight_kg ?? pr.reps}
-                  {pr.weight_kg ? 'kg' : ''} x {pr.reps}
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-800">
+                    <MuscleIcon muscleGroup={pr.exercise.muscle_group} size={26} />
+                  </span>
+                  <span className="text-sm text-slate-200 underline decoration-slate-700 underline-offset-2 truncate">
+                    {pr.exercise.name} — {pr.weight_kg ?? pr.reps}
+                    {pr.weight_kg ? 'kg' : ''} x {pr.reps}
+                  </span>
                 </button>
                 <Button
                   variant="ghost"
