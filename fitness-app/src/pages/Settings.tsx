@@ -89,6 +89,17 @@ export function Settings() {
       <Button variant="danger" className="w-full" onClick={signOut}>
         Se déconnecter
       </Button>
+
+      <p className="text-center text-xs text-slate-600">
+        Icônes musculaires par{' '}
+        <a href="https://www.flaticon.com/authors/cube29" target="_blank" rel="noreferrer" className="underline">
+          cube29
+        </a>{' '}
+        —{' '}
+        <a href="https://www.flaticon.com" target="_blank" rel="noreferrer" className="underline">
+          Flaticon
+        </a>
+      </p>
     </div>
   )
 }
