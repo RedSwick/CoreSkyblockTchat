@@ -39,9 +39,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: sub } = supabase.auth.onAuthStateChange((_event, newSession) => {
       setSession(newSession)
       if (newSession?.user) {
-        loadProfile(newSession.user.id)
+        // Le profil doit être chargé avant de laisser les routes décider
+        // d'un redirect (sinon un profil pas encore chargé après connexion
+        // ressemble à "pas onboardé" et renvoie sur /login en boucle).
+        setLoading(true)
+        loadProfile(newSession.user.id).finally(() => setLoading(false))
       } else {
         setProfile(null)
+        setLoading(false)
       }
     })
 
