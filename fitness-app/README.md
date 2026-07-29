@@ -92,6 +92,8 @@ src/
 supabase/
   schema.sql               tables + RLS + bibliothèque d'exercices de base + messagerie
   migration_002_messages.sql   à lancer seulement si schema.sql avait déjà été exécuté avant
+  migration_003_protein_shake.sql   idem, pour le suivi shake protéiné/BCAA/créatine
+  migration_004_more_exercises.sql  idem, pour les 11 exercices ajoutés (fessiers/ischios/mollets/bras/abdos)
 ```
 
 Pour ajuster ou ajouter des programmes d'entraînement par défaut, modifie `src/lib/programs.ts`

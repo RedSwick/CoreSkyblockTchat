@@ -65,6 +65,7 @@ export const HOMME_GYM: ProgramTemplate = {
         { name: 'Presse à cuisses', sets: 3, repsMin: 8, repsMax: 12, restSec: 90 },
         { name: 'Leg curl allongé', sets: 3, repsMin: 10, repsMax: 12, restSec: 60 },
         { name: 'Extension mollets debout', sets: 4, repsMin: 12, repsMax: 15, restSec: 45 },
+        { name: 'Presse à mollets', sets: 3, repsMin: 12, repsMax: 15, restSec: 45 },
       ],
     },
   ],
@@ -94,7 +95,7 @@ export const HOMME_HOME: ProgramTemplate = {
       exercises: [
         { name: 'Dips', sets: 4, repsMin: 6, repsMax: 12, restSec: 90 },
         { name: 'Tractions supination', sets: 3, repsMin: 5, repsMax: 10, restSec: 120 },
-        { name: 'Fentes marchées', sets: 3, repsMin: 10, repsMax: 15, restSec: 90 },
+        { name: 'Fentes bulgares', sets: 3, repsMin: 10, repsMax: 15, restSec: 90 },
         { name: 'Rowing haltère unilatéral', sets: 3, repsMin: 8, repsMax: 12, restSec: 90 },
         { name: 'Élévations latérales', sets: 3, repsMin: 12, repsMax: 15, restSec: 60 },
         { name: 'Crunch', sets: 3, repsMin: 15, repsMax: 25, restSec: 45 },
@@ -132,7 +133,8 @@ export const FEMME_GYM: ProgramTemplate = {
       exercises: [
         { name: 'Squat gobelet haltère', sets: 3, repsMin: 12, repsMax: 15, restSec: 75 },
         { name: 'Hip thrust', sets: 4, repsMin: 12, repsMax: 15, restSec: 75 },
-        { name: 'Fentes marchées', sets: 3, repsMin: 12, repsMax: 15, restSec: 60 },
+        { name: 'Abduction hanche', sets: 3, repsMin: 15, repsMax: 20, restSec: 45 },
+        { name: 'Fentes bulgares', sets: 3, repsMin: 12, repsMax: 15, restSec: 60 },
         { name: 'Leg curl allongé', sets: 3, repsMin: 12, repsMax: 15, restSec: 60 },
         { name: 'Extension mollets debout', sets: 3, repsMin: 15, repsMax: 20, restSec: 45 },
         { name: 'Gainage planche', sets: 3, repsMin: 30, repsMax: 45, restSec: 45 },
@@ -187,9 +189,8 @@ export const FEMME_PPL: ProgramTemplate = {
       label: 'Legs (jambes/fessiers)',
       exercises: [
         { name: 'Squat gobelet haltère', sets: 3, repsMin: 12, repsMax: 15, restSec: 75 },
-        { name: 'Hip thrust', sets: 4, repsMin: 12, repsMax: 15, restSec: 75 },
-        { name: 'Fentes marchées', sets: 3, repsMin: 12, repsMax: 15, restSec: 60 },
-        { name: 'Leg curl allongé', sets: 3, repsMin: 12, repsMax: 15, restSec: 60 },
+        { name: 'Hip thrust unilatéral', sets: 3, repsMin: 12, repsMax: 15, restSec: 60 },
+        { name: 'Soulevé de terre jambes tendues', sets: 3, repsMin: 12, repsMax: 15, restSec: 75 },
         { name: 'Extension mollets debout', sets: 3, repsMin: 15, repsMax: 20, restSec: 45 },
         { name: 'Vélo elliptique / rameur', sets: 1, repsMin: 10, repsMax: 15, restSec: 0 },
       ],
@@ -219,12 +220,12 @@ export const FEMME_HOME: ProgramTemplate = {
     {
       label: 'Full Body B',
       exercises: [
-        { name: 'Fentes marchées', sets: 3, repsMin: 12, repsMax: 15, restSec: 60 },
+        { name: 'Fentes bulgares', sets: 3, repsMin: 12, repsMax: 15, restSec: 60 },
         { name: 'Squat gobelet haltère', sets: 3, repsMin: 12, repsMax: 15, restSec: 75 },
         { name: 'Dips triceps (banc)', sets: 3, repsMin: 10, repsMax: 15, restSec: 60 },
         { name: 'Curl marteau', sets: 2, repsMin: 12, repsMax: 15, restSec: 45 },
         { name: 'Oiseau / élévations arrière', sets: 3, repsMin: 12, repsMax: 15, restSec: 45 },
-        { name: 'Crunch', sets: 3, repsMin: 15, repsMax: 25, restSec: 45 },
+        { name: 'Rotation russe', sets: 3, repsMin: 20, repsMax: 30, restSec: 45 },
         { name: 'Corde à sauter', sets: 1, repsMin: 8, repsMax: 12, restSec: 0 },
       ],
     },

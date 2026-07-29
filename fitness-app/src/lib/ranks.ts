@@ -91,6 +91,17 @@ export const RANK_CONFIG: Record<string, ExerciseRankConfig> = {
   Pompes: { metric: 'reps', unit: 'reps', male: [15, 30, 45, 60], female: [8, 18, 28, 40] },
   'Pompes lestées': { metric: 'weight', unit: 'kg', male: [5, 15, 25, 35], female: [2, 8, 14, 20] },
   'Gainage planche': { metric: 'seconds', unit: 'sec', male: [30, 60, 90, 120], female: [30, 60, 90, 120] },
+  'Fentes bulgares': { metric: 'weight', unit: 'kg', male: [12, 20, 26, 32], female: [6, 10, 14, 18] },
+  'Hip thrust unilatéral': { metric: 'weight', unit: 'kg', male: [15, 30, 45, 60], female: [12, 24, 36, 48] },
+  'Abduction hanche': { metric: 'weight', unit: 'kg', male: [20, 35, 50, 65], female: [12, 22, 32, 42] },
+  'Soulevé de terre jambes tendues': { metric: 'weight', unit: 'kg', male: [50, 90, 120, 150], female: [20, 40, 60, 80] },
+  'Leg curl assis': { metric: 'weight', unit: 'kg', male: [20, 35, 50, 65], female: [10, 18, 26, 34] },
+  'Extension mollets assis': { metric: 'weight', unit: 'kg', male: [40, 70, 100, 130], female: [20, 35, 50, 65] },
+  'Presse à mollets': { metric: 'weight', unit: 'kg', male: [80, 140, 200, 260], female: [40, 70, 100, 130] },
+  'Extension triceps barre au sol': { metric: 'weight', unit: 'kg', male: [20, 35, 45, 55], female: [8, 14, 18, 24] },
+  'Curl pupitre': { metric: 'weight', unit: 'kg', male: [15, 28, 36, 44], female: [6, 11, 15, 20] },
+  'Gainage latéral': { metric: 'seconds', unit: 'sec', male: [20, 40, 60, 90], female: [20, 40, 60, 90] },
+  'Rotation russe': { metric: 'reps', unit: 'reps', male: [20, 40, 60, 80], female: [15, 30, 45, 60] },
 }
 
 /**
