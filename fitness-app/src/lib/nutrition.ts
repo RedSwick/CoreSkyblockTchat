@@ -33,8 +33,13 @@ export function tdee(
 
 /**
  * Calcule les objectifs caloriques/macros du jour.
- * - gain_muscle : surplus modéré (+12%) + protéines hautes pour prise de masse
- *   la plus sèche possible (peu de graisse à prendre en plus du muscle).
+ * - gain_muscle : surplus FIXE de +300 kcal/jour (pas un pourcentage du TDEE) +
+ *   protéines hautes pour prise de masse la plus sèche possible. La littérature
+ *   (lean bulk) converge sur ~250-350 kcal/jour de surplus quel que soit le niveau
+ *   d'activité : au-delà, le surplus part surtout en graisse plutôt qu'en muscle.
+ *   Un pourcentage du TDEE ferait exploser le surplus pour quelqu'un de "très
+ *   actif" (ex. +12% sur ~3300 kcal = +400, mais sur un TDEE encore plus haut ça
+ *   grimpe vite bien au-delà de ce qui est utile), donc on fixe la valeur absolue.
  * - lose_fat_tone : déficit modéré (-15%) mais protéines suffisantes pour
  *   préserver le muscle en se tonifiant, reste flexible (pas de suivi strict imposé).
  * - maintain : TDEE tel quel.
@@ -56,7 +61,7 @@ export function computeNutritionTargets(params: {
 
   switch (goal) {
     case 'gain_muscle':
-      calories = maintenance * 1.12
+      calories = maintenance + 300
       proteinPerKg = 2.2
       fatPerKg = 0.9
       break

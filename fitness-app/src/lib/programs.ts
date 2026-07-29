@@ -45,6 +45,7 @@ export const HOMME_GYM: ProgramTemplate = {
         { name: 'Développé incliné haltères', sets: 3, repsMin: 8, repsMax: 12, restSec: 90 },
         { name: 'Élévations latérales', sets: 3, repsMin: 12, repsMax: 15, restSec: 60 },
         { name: 'Extension triceps poulie', sets: 3, repsMin: 10, repsMax: 12, restSec: 60 },
+        { name: 'Extension triceps barre au sol', sets: 2, repsMin: 10, repsMax: 12, restSec: 60 },
       ],
     },
     {
@@ -55,6 +56,7 @@ export const HOMME_GYM: ProgramTemplate = {
         { name: 'Tirage horizontal poulie', sets: 3, repsMin: 8, repsMax: 12, restSec: 90 },
         { name: 'Oiseau / élévations arrière', sets: 3, repsMin: 12, repsMax: 15, restSec: 60 },
         { name: 'Curl biceps barre', sets: 3, repsMin: 8, repsMax: 12, restSec: 60 },
+        { name: 'Curl pupitre', sets: 2, repsMin: 10, repsMax: 12, restSec: 60 },
       ],
     },
     {

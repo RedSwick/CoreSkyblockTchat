@@ -14,6 +14,7 @@ import {
 import { computeHydrationTargetMl, computeNutritionTargets, getAge } from '../lib/nutrition'
 import { suggestDailyMeals } from '../lib/meals'
 import { getConstanceData, type ConstanceData } from '../lib/constance'
+import { isDeloadWeek } from '../lib/progression'
 import { Button, Card, EmptyState, PageTitle, ProgressRing, Spinner, StatPill } from '../components/ui'
 import type { Location, Profile, Program, ProgramDay, ProgramExercise, Exercise } from '../types'
 
@@ -252,6 +253,17 @@ export function Dashboard() {
           </Link>
         </div>
       </Card>
+
+      {constance && isDeloadWeek(constance.weekly.currentStreakWeeks) && (
+        <Card className="border border-amber-500/40 bg-amber-500/5">
+          <p className="text-sm text-amber-300 font-medium">🪫 Semaine de décharge conseillée</p>
+          <p className="text-xs text-slate-400 mt-1">
+            {constance.weekly.currentStreakWeeks} semaines d'affilée à l'objectif : réduis un peu cette semaine
+            (garde le même geste mais ~60-70% des charges, ou 1-2 séries en moins par exercice) pour récupérer et
+            repartir plus fort ensuite. C'est normal et ça fait partie de la progression.
+          </p>
+        </Card>
+      )}
 
       <Card>
         <div className="flex items-center justify-between mb-3">

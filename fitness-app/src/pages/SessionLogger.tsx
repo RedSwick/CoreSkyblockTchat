@@ -15,6 +15,7 @@ import {
   type BestPerformance,
 } from '../lib/api'
 import { computeExerciseRank, hasRankConfig } from '../lib/ranks'
+import { EFFORT_LABEL, EFFORT_RPE, suggestProgression, type Effort } from '../lib/progression'
 import { RankBadge } from '../components/RankBadge'
 import { MuscleIcon } from '../components/MuscleMap'
 import { Button, Card, PageTitle, Spinner } from '../components/ui'
@@ -34,7 +35,7 @@ export function SessionLogger() {
   const [suggestions, setSuggestions] = useState<Record<string, SessionSet | undefined>>({})
   const [bests, setBests] = useState<Record<string, BestPerformance>>({})
   const [partner, setPartner] = useState<Profile | null>(null)
-  const [drafts, setDrafts] = useState<Record<string, { weight: string; reps: string }>>({})
+  const [drafts, setDrafts] = useState<Record<string, { weight: string; reps: string; effort: Effort | null }>>({})
   const [celebrating, setCelebrating] = useState<string | null>(null)
   const [finishing, setFinishing] = useState(false)
 
@@ -88,9 +89,9 @@ export function SessionLogger() {
     }
   }, [sessionId, profile])
 
-  function updateDraft(exerciseId: string, patch: Partial<{ weight: string; reps: string }>) {
+  function updateDraft(exerciseId: string, patch: Partial<{ weight: string; reps: string; effort: Effort | null }>) {
     setDrafts((prev) => {
-      const current = prev[exerciseId] ?? { weight: '', reps: '' }
+      const current = prev[exerciseId] ?? { weight: '', reps: '', effort: null }
       return { ...prev, [exerciseId]: { ...current, ...patch } }
     })
   }
@@ -98,11 +99,12 @@ export function SessionLogger() {
   async function handleAddSet(pe: ExerciseWithTarget) {
     if (!sessionId || !profile) return
     const exerciseId = pe.exercise_id
-    const draft = drafts[exerciseId] ?? { weight: '', reps: '' }
+    const draft = drafts[exerciseId] ?? { weight: '', reps: '', effort: null }
     const setNumber = (loggedSets[exerciseId]?.length ?? 0) + 1
     const weight = draft.weight ? Number(draft.weight) : null
     const reps = draft.reps ? Number(draft.reps) : null
-    const created = await addSet({ sessionId, exerciseId, setNumber, weightKg: weight, reps, rpe: null })
+    const rpe = draft.effort ? EFFORT_RPE[draft.effort] : null
+    const created = await addSet({ sessionId, exerciseId, setNumber, weightKg: weight, reps, rpe })
 
     const oldBest = bests[exerciseId]?.maxWeight ?? null
     const isRecord = weight !== null && (oldBest === null || weight > oldBest)
@@ -134,7 +136,7 @@ export function SessionLogger() {
     }
 
     setLoggedSets((prev) => ({ ...prev, [exerciseId]: [...(prev[exerciseId] ?? []), created] }))
-    updateDraft(exerciseId, { weight: '', reps: '' })
+    updateDraft(exerciseId, { weight: '', reps: '', effort: null })
   }
 
   async function handleFinish() {
@@ -163,7 +165,14 @@ export function SessionLogger() {
       {exercises.map((pe) => {
         const sets = loggedSets[pe.exercise_id] ?? []
         const suggestion = suggestions[pe.exercise_id]
-        const draft = drafts[pe.exercise_id] ?? { weight: '', reps: '' }
+        const draft = drafts[pe.exercise_id] ?? { weight: '', reps: '', effort: null }
+        const progression = suggestProgression({
+          lastWeightKg: suggestion?.weight_kg ?? null,
+          lastReps: suggestion?.reps ?? null,
+          lastRpe: suggestion?.rpe ?? null,
+          repsMin: pe.target_reps_min,
+          repsMax: pe.target_reps_max,
+        })
         const rank = hasRankConfig(pe.exercise.name)
           ? computeExerciseRank(pe.exercise.name, profile.sex, bests[pe.exercise_id]?.maxWeight ?? bests[pe.exercise_id]?.maxReps ?? null)
           : null
@@ -192,10 +201,11 @@ export function SessionLogger() {
               <p className="text-xs text-amber-300 mb-2">🎉 Rang supérieur débloqué !</p>
             )}
             {suggestion && (
-              <p className="text-xs text-slate-500 mb-2">
+              <p className="text-xs text-slate-500 mb-1">
                 Dernière fois : {suggestion.weight_kg ?? '?'}kg x {suggestion.reps ?? '?'}
               </p>
             )}
+            <p className="text-xs text-sky-400 mb-2">💡 {progression.note}</p>
 
             {sets.length > 0 && (
               <div className="flex flex-wrap gap-1.5 mb-2">
@@ -230,6 +240,21 @@ export function SessionLogger() {
               <Button variant="secondary" className="flex-1 py-2 text-sm" onClick={() => handleAddSet(pe)}>
                 + Série {sets.length + 1}
               </Button>
+            </div>
+            <div className="flex gap-1.5 mt-2">
+              {(Object.keys(EFFORT_LABEL) as Effort[]).map((effort) => (
+                <button
+                  key={effort}
+                  onClick={() => updateDraft(pe.exercise_id, { effort: draft.effort === effort ? null : effort })}
+                  className={`flex-1 rounded-lg py-1.5 text-xs border transition-colors ${
+                    draft.effort === effort
+                      ? 'bg-sky-500/20 border-sky-500 text-sky-300'
+                      : 'bg-slate-800/50 border-slate-700 text-slate-400'
+                  }`}
+                >
+                  {EFFORT_LABEL[effort]}
+                </button>
+              ))}
             </div>
           </Card>
         )
