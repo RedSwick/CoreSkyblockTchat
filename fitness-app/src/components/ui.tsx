@@ -11,7 +11,11 @@ export function Card({
 }) {
   return (
     <div
-      className={`rounded-2xl bg-gradient-to-b from-slate-900/80 to-slate-900/40 backdrop-blur border border-slate-800/80 p-4 shadow-lg shadow-black/20 ${glow ? 'card-glow' : ''} ${className}`}
+      className={`rounded-2xl p-4 shadow-lg shadow-black/20 ${
+        glow
+          ? 'bg-gradient-to-br from-sky-500/15 via-slate-900/70 to-indigo-500/10 border border-sky-500/25'
+          : 'bg-gradient-to-b from-slate-900/80 to-slate-900/40 backdrop-blur border border-slate-800/80'
+      } ${className}`}
     >
       {children}
     </div>
