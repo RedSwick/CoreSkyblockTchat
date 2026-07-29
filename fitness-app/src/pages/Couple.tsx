@@ -15,6 +15,7 @@ import {
 } from '../lib/api'
 import { computeHydrationTargetMl } from '../lib/nutrition'
 import { getConstanceData, type ConstanceData } from '../lib/constance'
+import { getErrorMessage } from '../lib/errors'
 import { Button, Card, EmptyState, Input, PageTitle, Spinner } from '../components/ui'
 import { MuscleIcon } from '../components/MuscleMap'
 import type { Exercise, Profile, SessionSet, WeightLog, WorkoutSession } from '../types'
@@ -90,7 +91,7 @@ export function Couple() {
       await refreshProfile()
       load()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Code invalide')
+      setError(getErrorMessage(err, 'Code invalide'))
     }
   }
 

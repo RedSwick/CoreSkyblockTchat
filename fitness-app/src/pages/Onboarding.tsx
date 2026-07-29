@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { createCouple, joinCouple, updateProfile, upsertWeightLog } from '../lib/api'
+import { getErrorMessage } from '../lib/errors'
 import { Button, Card, Input, Label, PageTitle, Select } from '../components/ui'
 import type { ActivityLevel, Goal, Sex } from '../types'
 
@@ -43,7 +44,7 @@ export function Onboarding() {
       setLinked(true)
       await refreshProfile()
     } catch (err) {
-      setCoupleError(err instanceof Error ? err.message : 'Erreur')
+      setCoupleError(getErrorMessage(err))
     }
   }
 
@@ -55,7 +56,7 @@ export function Onboarding() {
       setLinked(true)
       await refreshProfile()
     } catch (err) {
-      setCoupleError(err instanceof Error ? err.message : 'Code invalide')
+      setCoupleError(getErrorMessage(err, 'Code invalide'))
     }
   }
 
@@ -81,7 +82,7 @@ export function Onboarding() {
       await refreshProfile()
       navigate('/workouts', { replace: true })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur lors de la sauvegarde')
+      setError(getErrorMessage(err, 'Erreur lors de la sauvegarde'))
     } finally {
       setSaving(false)
     }
