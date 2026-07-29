@@ -61,7 +61,7 @@ Sur le Dashboard, un sélecteur **🏠 Maison / 🏋️ Salle** te laisse dire o
 
 ## Rangs par exercice
 
-Chaque exercice avec une charge/reps mesurable (`src/lib/ranks.ts`) a 5 paliers — **Bronze, Argent, Or, Diamant, Légende** — avec des seuils différents pour homme/femme (ex. développé couché : Or à partir de 100kg, Diamant à partir de 120kg côté homme). Le rang s'affiche :
+Chaque exercice avec une charge/reps mesurable (`src/lib/ranks.ts`) a un système de rangs façon League of Legends / Valorant : **Bronze, Argent, Or, Platine, Émeraude, Diamant** (chacun avec 3 divisions, ex. "Or 2"), puis **Maître, Grand Maître, Challenger** en paliers continus sans division — avec des seuils différents pour homme/femme. Le rang s'affiche :
 
 - à droite du nom de l'exercice pendant une séance et dans le détail de l'exercice,
 - agrégé par groupe musculaire (Épaules, Bras, Fessiers, Quadriceps, etc.) dans l'onglet **Rangs**,

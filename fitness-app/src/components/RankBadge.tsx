@@ -8,7 +8,7 @@ export function RankBadge({ rank, size = 'md' }: { rank: RankResult | null; size
     md: 'text-sm px-2.5 py-1 gap-1.5',
     lg: 'text-base px-3.5 py-1.5 gap-2',
   }
-  const isTopTier = rank.tierIndex >= 3
+  const isTopTier = rank.tierIndex >= 6
 
   return (
     <span
@@ -21,7 +21,7 @@ export function RankBadge({ rank, size = 'md' }: { rank: RankResult | null; size
       }}
     >
       <span>{rank.icon}</span>
-      {rank.tierName}
+      {rank.label}
     </span>
   )
 }

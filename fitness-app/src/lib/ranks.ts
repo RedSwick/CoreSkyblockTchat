@@ -1,22 +1,46 @@
 import type { Sex } from '../types'
 
-export const TIER_NAMES = ['Bronze', 'Argent', 'Or', 'Diamant', 'Légende'] as const
+// Inspiré des systèmes de rangs type League of Legends / Valorant : des paliers
+// principaux, chacun divisé en 3 divisions (sauf les paliers "apex" du haut,
+// comme Master/Grandmaster/Challenger dans ces jeux, qui sont continus).
+export const TIER_NAMES = [
+  'Bronze',
+  'Argent',
+  'Or',
+  'Platine',
+  'Émeraude',
+  'Diamant',
+  'Maître',
+  'Grand Maître',
+  'Challenger',
+] as const
 export type TierName = (typeof TIER_NAMES)[number]
+
+/** Index (0-based) du premier palier "apex" sans division (Maître). */
+const APEX_START_INDEX = 6
 
 export const TIER_COLORS: Record<TierName, string> = {
   Bronze: '#b45309',
   Argent: '#94a3b8',
   Or: '#eab308',
-  Diamant: '#38bdf8',
-  Légende: '#e879f9',
+  Platine: '#22d3ee',
+  Émeraude: '#10b981',
+  Diamant: '#60a5fa',
+  Maître: '#a78bfa',
+  'Grand Maître': '#d946ef',
+  Challenger: '#f97316',
 }
 
 export const TIER_ICONS: Record<TierName, string> = {
   Bronze: '🥉',
   Argent: '🥈',
   Or: '🥇',
+  Platine: '🔷',
+  Émeraude: '💚',
   Diamant: '💎',
-  Légende: '👑',
+  Maître: '🔮',
+  'Grand Maître': '🌟',
+  Challenger: '👑',
 }
 
 type Metric = 'weight' | 'reps' | 'seconds'
@@ -25,7 +49,12 @@ interface ExerciseRankConfig {
   metric: Metric
   /** unité affichée (kg, reps, sec) */
   unit: string
-  /** 4 seuils croissants = bornes basses de Argent / Or / Diamant / Légende */
+  /**
+   * 4 seuils croissants, utilisés comme points d'ancrage pour dériver les 9
+   * paliers (avec divisions) ci-dessous — voir `buildFineBoundaries`.
+   * Historiquement ces 4 valeurs marquaient Argent / Or / Diamant / Légende ;
+   * elles servent maintenant de base à un système plus fin.
+   */
   male: [number, number, number, number]
   female: [number, number, number, number]
 }
@@ -64,9 +93,47 @@ export const RANK_CONFIG: Record<string, ExerciseRankConfig> = {
   'Gainage planche': { metric: 'seconds', unit: 'sec', male: [30, 60, 90, 120], female: [30, 60, 90, 120] },
 }
 
+/**
+ * Construit les 21 bornes fines (Bronze 1/2/3 → ... → Diamant 3, puis Maître,
+ * Grand Maître, Challenger sans division) à partir des 4 seuils d'ancrage.
+ * Chacun des 4 anciens intervalles est subdivisé en 2, donnant 8 seuils de
+ * palier ; les 6 premiers paliers sont ensuite chacun coupés en 3 divisions.
+ */
+function buildFineBoundaries(anchors: [number, number, number, number]): number[] {
+  const [t1, t2, t3, t4] = anchors
+  const tierStarts = [
+    0,
+    t1 / 2,
+    t1,
+    t1 + (t2 - t1) / 2,
+    t2,
+    t2 + (t3 - t2) / 2,
+    t3,
+    t3 + (t4 - t3) / 2,
+    t4,
+  ]
+
+  const fine: number[] = []
+  for (let i = 0; i < TIER_NAMES.length; i++) {
+    const lo = tierStarts[i]
+    if (i < APEX_START_INDEX) {
+      const hi = tierStarts[i + 1]
+      const width = hi - lo
+      fine.push(lo, lo + width / 3, lo + (2 * width) / 3)
+    } else {
+      fine.push(lo)
+    }
+  }
+  return fine
+}
+
 export interface RankResult {
   tierIndex: number
   tierName: TierName
+  /** 1-3 pour Bronze→Diamant, absent pour Maître/Grand Maître/Challenger */
+  division: number | null
+  /** "Or 2", ou juste "Challenger" pour les paliers apex */
+  label: string
   color: string
   icon: string
   value: number | null
@@ -74,6 +141,36 @@ export interface RankResult {
   unit: string
   nextThreshold: number | null
   progressPct: number
+}
+
+function buildResult(config: ExerciseRankConfig, fineIndex: number, value: number | null, fine: number[]): RankResult {
+  const tierIndex = fineIndex < APEX_START_INDEX * 3 ? Math.floor(fineIndex / 3) : APEX_START_INDEX + (fineIndex - APEX_START_INDEX * 3)
+  const division = tierIndex < APEX_START_INDEX ? (fineIndex % 3) + 1 : null
+  const tierName = TIER_NAMES[tierIndex]
+  const label = division ? `${tierName} ${division}` : tierName
+
+  const lo = fine[fineIndex]
+  const nextThreshold = fineIndex < fine.length - 1 ? fine[fineIndex + 1] : null
+  const progressPct =
+    nextThreshold !== null && value !== null
+      ? Math.min(100, Math.max(0, Math.round(((value - lo) / (nextThreshold - lo)) * 100)))
+      : value !== null
+        ? 100
+        : 0
+
+  return {
+    tierIndex,
+    tierName,
+    division,
+    label,
+    color: TIER_COLORS[tierName],
+    icon: TIER_ICONS[tierName],
+    value,
+    metric: config.metric,
+    unit: config.unit,
+    nextThreshold,
+    progressPct,
+  }
 }
 
 export function hasRankConfig(exerciseName: string): boolean {
@@ -87,45 +184,19 @@ export function getExerciseMetric(exerciseName: string): Metric | null {
 export function computeExerciseRank(exerciseName: string, sex: Sex | null, value: number | null): RankResult | null {
   const config = RANK_CONFIG[exerciseName]
   if (!config) return null
-  const thresholds = sex === 'female' ? config.female : config.male
+  const anchors = sex === 'female' ? config.female : config.male
+  const fine = buildFineBoundaries(anchors)
 
   if (value === null || value <= 0) {
-    return {
-      tierIndex: 0,
-      tierName: TIER_NAMES[0],
-      color: TIER_COLORS[TIER_NAMES[0]],
-      icon: TIER_ICONS[TIER_NAMES[0]],
-      value: null,
-      metric: config.metric,
-      unit: config.unit,
-      nextThreshold: thresholds[0],
-      progressPct: 0,
-    }
+    return buildResult(config, 0, null, fine)
   }
 
-  let tierIndex = 0
-  for (let i = 0; i < thresholds.length; i++) {
-    if (value >= thresholds[i]) tierIndex = i + 1
+  let fineIndex = 0
+  for (let i = 0; i < fine.length; i++) {
+    if (value >= fine[i]) fineIndex = i
   }
 
-  const tierName = TIER_NAMES[tierIndex]
-  const prevThreshold = tierIndex === 0 ? 0 : thresholds[tierIndex - 1]
-  const nextThreshold = tierIndex < thresholds.length ? thresholds[tierIndex] : null
-  const progressPct = nextThreshold
-    ? Math.min(100, Math.round(((value - prevThreshold) / (nextThreshold - prevThreshold)) * 100))
-    : 100
-
-  return {
-    tierIndex,
-    tierName,
-    color: TIER_COLORS[tierName],
-    icon: TIER_ICONS[tierName],
-    value,
-    metric: config.metric,
-    unit: config.unit,
-    nextThreshold,
-    progressPct,
-  }
+  return buildResult(config, fineIndex, value, fine)
 }
 
 export function getMuscleGroups(muscleGroup: string): string[] {
